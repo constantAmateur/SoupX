@@ -35,7 +35,9 @@ To estimate the contamination fraction, we need a set of genes that we know (usu
 Say we're using HBB,HBA2 and IGKC to estimate the contamination fraction.  Let's now look at what happens in a few hypothetical cells:
 
 Cell 1 - Is a red blood cell so expresses HBB and HBA2, but should not express IGKC.  For this cell we want to use IGKC to estimate the contamination fraction but not HBB,HBA2.
+
 Cell 2 - Is a B-Cell so should express IGKC, but not HBB or HBA2.  For this cell we want to use HBB and HBA2 to estimate the contamination fraction, but not IGKC.
+
 Cell 3 - Is an endothelial cell, so should not express any of HBB,HBA2 or IGKC.  So we want to use all three to estimate the contamination fraction.
 
 Basically we are trying to identify in each cell, a set of genes we know the cell does not express so we can estimate the contamination fraction using the expression we do see.
@@ -45,7 +47,9 @@ Now obviously the method doesn't know anything about the biology and we haven't 
 But absent this information, the trick is to use the expression level of the cell to identify when not to use a gene to estimate the contamination fraction in a cell.  This is why we want genes with a bimodal expression distribution across cells, because it tells us that when a cell expresses the gene, it expresses it a lot so we can easily identify these cells and not use that gene for the estimation in those cells.  Given a set of genes that we suspect may be useful, the function `plotMarkerDistribution` can be used to visualise how this gene's expression is distributed across cells.  To continue our example:
 
 Cell 1 - The measured expression of HBB and HBA2 is 10 times what we'd expect if the droplet was filled with soup, so the method will not use either of these genes to calculate rho.  On the other hand IGKC is about .05 times the value we'd get for pure soup, so that is used.
+
 Cell 2 - HBB/HBA2 have values around .05 times the soup.  IGKC is off the charts at 100 times what we'd expect in the soup.  So the method concludes that this cell is expressing IGKC and so uses only HBB/HBA2 to estimate rho.
+
 Cell 3 - All three are at around .05, so all are used to estimate rho.
 
 To get a more accurate estimate, groups with a similar biological function are grouped together so they're either used or excluded as a group.  This is why the parameter nonExpressedGeneList is given as a list.  Each entry in the list is a group of genes that are grouped biologically.  So in our example we would set it like:
