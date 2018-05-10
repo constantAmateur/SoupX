@@ -4,15 +4,17 @@
 \alias{interpolateCellContamination}
 \title{Get cell specific rho from binned values}
 \usage{
-interpolateCellContamination(rhos, nUMIs)
+interpolateCellContamination(sc, channelName, useGlobal = FALSE)
 }
 \arguments{
-\item{rhos}{The output of \code{\link{calculateContaminationFraction}} for this set of cells.}
+\item{sc}{A \code{SoupChannel} or \code{SoupChannelList} object.}
 
-\item{nUMIs}{The total number of UMIs for each cell.}
+\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList} object.}
+
+\item{useGlobal}{If TRUE, set all cells to the global estimate of the contamination fraction.}
 }
 \value{
-A vector of the same length as nUMIs with a cell-specific estimate of rho.
+A modified version of \code{sc} with cell estimates of contamination stored in \code{rhos}.  If \code{sc} is a \code{SoupChannelList}, the named channel is updated in this way.
 }
 \description{
 Interpolates rho at each cell based on each cell's total number of UMIs from estimates in bins.

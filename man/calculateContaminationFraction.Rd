@@ -4,18 +4,18 @@
 \alias{calculateContaminationFraction}
 \title{Calculate the contamination fraction}
 \usage{
-calculateContaminationFraction(toc, soupProfile, nonExpressedGeneList,
+calculateContaminationFraction(sc, channelName, nonExpressedGeneList,
   useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000,
-  excludeMethod = c("qCut", "pCut", "thresh"), exCut = 0.05)
+  excludeMethod = c("pCut", "thresh"), exCut = 0.05)
 }
 \arguments{
-\item{toc}{Table of UMIs for droplets containing cells only.}
+\item{sc}{A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.}
 
-\item{soupProfile}{The expression profile for the soup as calculated by \code{\link{estimateSoup}}}
+\item{channelName}{The name of a channel to use if \code{sc} is a SoupChannelList object.}
 
 \item{nonExpressedGeneList}{A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).}
 
-\item{useToEst}{A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which genes should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).}
+\item{useToEst}{A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).}
 
 \item{cellGroups}{A vector indicating which cells to group together when estimating rho (see details).}
 
@@ -26,7 +26,7 @@ calculateContaminationFraction(toc, soupProfile, nonExpressedGeneList,
 \item{exCut}{Cut-off used by \code{excludeMethod} (see details).}
 }
 \value{
-A data.frame containing estimates of the contamination fraction for different groupings.
+A modified version of \code{sc} with the entry \code{rhoGrouped} containing estimates of the contamination fraction for different groupings.  If \code{sc} is a SoupChannelList object the returned object has the channel named \code{channelName} modified to include the estimates of rho.
 }
 \description{
 This function calculates the contamination fraction using the markers provided in groups of cells.  A list containing genes that can be expected to be non-expressed in at least one cell must be given.  That is, this list contains sets of genes (e.g. Haemoglobin genes) that can be assumed to be completely absent from certain cells.  For example, haemoglobin genes should not be expressed in anything that is not a red blood cell.  The contamination fraction is then calculated using these genes in groups of cells.
@@ -38,6 +38,5 @@ Unless a large list of non expressed genes can be given, there is usually insuff
 
 The different methods to determine which cells to exclude which genes for are:
   pCut - Exclude any cell where we can reject the null hypothesis (Poisson test) that rho<=1 for a set of genes at the \code{exCut} level.
-  qCut - As above, but do multiple hypothesis correction first.
   thresh - Exclude any cell for which the estimate for rho exceeds \code{exCut}.
 }

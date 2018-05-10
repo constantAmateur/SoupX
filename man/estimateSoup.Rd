@@ -4,16 +4,18 @@
 \alias{estimateSoup}
 \title{Get expression profile of soup}
 \usage{
-estimateSoup(tod, soupRange = c(0, 10))
+estimateSoup(scl, soupRange = c(0, 10), keepDroplets = FALSE)
 }
 \arguments{
-\item{tod}{Table of UMIs for all droplets.}
+\item{scl}{A \code{SoupChannelList}.}
 
 \item{soupRange}{Droplets with total UMI count in this range (excluding endpoints) are used to estimate soup.}
+
+\item{keepDroplets}{Storing the full table of counts for all droplets uses a lot of space and is really only used to estimate the soup profile.  Therefore, it is dropped after the soup profile has been estimated unless this is set to \code{TRUE}.}
 }
 \value{
-A data.frame with the soup profile and confidence limits for all genes.
+A modified version of \code{scl} with an extra \code{soupProfile} entry containing a data.frame with the soup profile and confidence limits for all genes.
 }
 \description{
-Uses the empty droplets in the range provided to calculate the expression profile of the soup under the assumption that these droplets only contain background.
+Uses the empty droplets in the range provided to calculate the expression profile of the soup under the assumption that these droplets only contain background.  If a SoupChannelList is provided, the soup profile is estimated for each channel and stored.
 }

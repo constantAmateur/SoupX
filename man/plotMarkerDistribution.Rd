@@ -4,13 +4,13 @@
 \alias{plotMarkerDistribution}
 \title{Plots the distribution of the observed to expected expression for marker genes}
 \usage{
-plotMarkerDistribution(toc, soupProfile, nonExpressedGeneList, maxCells = 150,
+plotMarkerDistribution(sc, channelName, nonExpressedGeneList, maxCells = 150,
   minRho = 1, qCut = 0.05)
 }
 \arguments{
-\item{toc}{Table of UMIs for all cells.}
+\item{sc}{A SoupChannel or SoupChannelList object.}
 
-\item{soupProfile}{The expression profile of the soup (output from \code{\link{estimateSoup}})}
+\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
 
 \item{nonExpressedGeneList}{Which genes to use to estimate soup (see \code{\link{calculateContaminationFraction}}).  Can also be a vector of gene names, in which case each gene is treated as a separate gene set.}
 

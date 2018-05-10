@@ -1,6 +1,16 @@
 # SoupX
 
-R package for the estimation and removal of cell free mRNA contamination in droplet based single cell RNA-seq data as described in [this paper](https://www.biorxiv.org/content/early/2018/04/20/303727).
+R package for the estimation and removal of cell free mRNA contamination in droplet based single cell RNA-seq data
+
+## Changelog
+
+### v0.2.0
+
+A fairly major overhaul of the data structures used by the package.  Not compatible with previous versions.
+
+### v0.1.1
+
+Some bug fixes to plotting routines.
 
 ## Installation
 
@@ -11,7 +21,9 @@ devtools::install_github("constantAmateur/SoupX")
 
 ## Documentation
 
-The methodology implemented in this package is explained in detail in [this paper]().  A detailed vignette and example data set is coming soon.
+The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
+
+A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.html).
 
 ## General remarks
 

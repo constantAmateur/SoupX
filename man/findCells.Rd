@@ -4,13 +4,11 @@
 \alias{findCells}
 \title{Estimates which droplets contain a cell}
 \usage{
-findCells(tod, soupProfile, nonExpressedGeneList, useToEst = NULL,
-  minUMIs = 100, minGenes = 50, contCut = 0.3)
+findCells(sc, nonExpressedGeneList, useToEst = NULL, minUMIs = 100,
+  minGenes = 50, contCut = 0.3)
 }
 \arguments{
-\item{tod}{Table of UMIs for all droplets from one channel to be tested.}
-
-\item{soupProfile}{The expression profile of the soup for this channel, as calculated by \code{\link{estimateSoup}}.}
+\item{sc}{A SoupChannel object for which the table of droplets has been retained.  That is, \code{\link{estimateSoup}} was run with \code{keepDroplets=TRUE}.}
 
 \item{useToEst}{Which cells to use which sets of genes to estimate contamination (see \code{\link{calculateContaminationFraction}})}
 
@@ -19,6 +17,8 @@ findCells(tod, soupProfile, nonExpressedGeneList, useToEst = NULL,
 \item{minGenes}{Don't test any droplet with fewer than this many detected genes.}
 
 \item{contCut}{The maximum allowable contamination fraction for a droplet containing a cell.}
+
+\item{soupProfile}{The expression profile of the soup for this channel, as calculated by \code{\link{estimateSoup}}.}
 
 \item{nonExpressedGenes}{Genes to use for estimating contamination fraction (see \code{\link{calculateContaminationFraction}})}
 }

@@ -4,12 +4,12 @@
 \alias{plotSoupCorrelation}
 \title{Plot correlation of expression profiles of soup and aggregated cells}
 \usage{
-plotSoupCorrelation(toc, soupProfile)
+plotSoupCorrelation(sc, channelName)
 }
 \arguments{
-\item{toc}{Table of UMIs for all cells.}
+\item{sc}{A SoupChannel or SoupChannelList object.}
 
-\item{soupProfile}{The expression profile of the soup (output from \code{\link{estimateSoup}})}
+\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
 }
 \value{
 A ggplot2 object containing the plot.

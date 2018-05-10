@@ -4,12 +4,14 @@
 \alias{plotChannelContamination}
 \title{Plot contamination fraction for channel}
 \usage{
-plotChannelContamination(rhos, showErrorBars = TRUE)
+plotChannelContamination(sc, channelName, showErrorBars = TRUE)
 }
 \arguments{
-\item{showErrorBars}{Should error bars showing the 95 percent confidence interval on the estimate of rho be included?}
+\item{sc}{A \code{SoupChannel} object on which \code{\link{calculateContaminationFraction}} has been run.  Alternatively, a \code{SoupChannelList} object containing such a channel.}
 
-\item{rho}{Output from \code{\link{calculateContaminationFraction}}.}
+\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
+
+\item{showErrorBars}{Should error bars showing the 95 percent confidence interval on the estimate of rho be included?}
 }
 \value{
 A ggplot2 object containing the plot.

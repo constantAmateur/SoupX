@@ -4,15 +4,14 @@
 \alias{createCleanedSeurat}
 \title{Convert multiple strained channels into a Seurat object}
 \usage{
-createCleanedSeurat(cleanedChannels, scale.factor = 10000,
-  channelCellPrefix = "", ...)
+createCleanedSeurat(scl, scale.factor = 10000, ...)
 }
 \arguments{
-\item{cleanedChannels}{A list of channels that have been run through \code{\link{strainChannel}}.}
+\item{scl}{A \code{SoupChannelList} object on which \code{\link{strainCells}} has been run.}
+
+\item{scale.factor}{The scale factor used in normalising data to log(1+scale.factor*x)}
 
 \item{...}{Extra parameters passed to \code{CreateSeuratObject}.}
-
-\item{channelPrefixes}{A vector of the same length as \code{cleanedChannels} giving a prefix to add to each cell before merging.}
 }
 \value{
 A normalised Seurat object.

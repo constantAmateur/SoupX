@@ -8,29 +8,39 @@
 #'
 #' The different methods to determine which cells to exclude which genes for are:
 #'   pCut - Exclude any cell where we can reject the null hypothesis (Poisson test) that rho<=1 for a set of genes at the \code{exCut} level.
-#'   qCut - As above, but do multiple hypothesis correction first.
 #'   thresh - Exclude any cell for which the estimate for rho exceeds \code{exCut}.
 #'
+#'
 #' @export 
-#' @param toc Table of UMIs for droplets containing cells only.
-#' @param soupProfile The expression profile for the soup as calculated by \code{\link{estimateSoup}}
+#' @param sc A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.
+#' @param channelName The name of a channel to use if \code{sc} is a SoupChannelList object.
 #' @param nonExpressedGeneList A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).
-#' @param useToEst A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which genes should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).
+#' @param useToEst A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).
 #' @param cellGroups A vector indicating which cells to group together when estimating rho (see details).
 #' @param tgtSoupCntsPerGroup When automatically constructing groups, ensure that each group has roughly this many expected soup counts.
 #' @param excludeMethod Which method to use to exclude cells (see details).
 #' @param exCut Cut-off used by \code{excludeMethod} (see details).
-#' @return A data.frame containing estimates of the contamination fraction for different groupings.
-calculateContaminationFraction = function(toc,soupProfile,nonExpressedGeneList,useToEst=NULL,cellGroups=NULL,tgtSoupCntsPerGroup=1000,excludeMethod=c('qCut','pCut','thresh'),exCut=0.05){
+#' @return A modified version of \code{sc} with the entry \code{rhoGrouped} containing estimates of the contamination fraction for different groupings.  If \code{sc} is a SoupChannelList object the returned object has the channel named \code{channelName} modified to include the estimates of rho.
+calculateContaminationFraction = function(sc,channelName,nonExpressedGeneList,useToEst=NULL,cellGroups=NULL,tgtSoupCntsPerGroup=1000,excludeMethod=c('pCut','thresh'),exCut=0.05){
+  if(is(sc,'SoupChannelList')){
+    if(!(channelName %in% names(sc$channels)))
+      stop("sc is a SoupChannelList object, but channelName is not the name of a channel within this object")
+    sc$channels[[channelName]] = calculateContaminationFraction(sc$channels[[channelName]],nonExpressedGeneList=nonExpressedGeneList,useToEst=useToEst,cellGroups=cellGroups,tgtSoupCntsPerGroup=tgtSoupCntsPerGroup,excludeMethod=excludeMethod,exCut=exCut)
+    return(sc)
+  }else if(!is(sc,'SoupChannel')){
+    stop("sc must be a SoupChannel or SoupChannelList object")
+  }
   excludeMethod = match.arg(excludeMethod)
+  #Check that soup has been estimated
+  if(is.null(sc$soupProfile))
+    stop("Must run estimateSoup first.")
   #Convert nonExpressedGeneList to a list if we just have one set.
   if(!is.list(nonExpressedGeneList))
     nonExpressedGeneList = list(Markers=nonExpressedGeneList)
-  nUMIs = colSums(toc)
   #Collapse genes in each marker list down into one measure
-  sFracs = do.call(rbind,lapply(nonExpressedGeneList,function(e) estRateLims(sum(soupProfile[e,'cnts']),sum(soupProfile$cnts))))
+  sFracs = do.call(rbind,lapply(nonExpressedGeneList,function(e) estRateLims(sum(sc$soupProfile[e,'cnts']),sum(sc$soupProfile$cnts))))
   #Do the same with cells, we don't care about other genes for estimation (other than the total counts)
-  dat = do.call(rbind,lapply(nonExpressedGeneList,function(e) colSums(toc[e,,drop=FALSE])))
+  dat = do.call(rbind,lapply(nonExpressedGeneList,function(e) colSums(sc$toc[e,,drop=FALSE])))
   if(is.null(dim(dat)))
     dat = matrix(dat,nrow=1,dimnames=list(names(nonExpressedGeneList),names(dat)))
   #############################
@@ -39,21 +49,20 @@ calculateContaminationFraction = function(toc,soupProfile,nonExpressedGeneList,u
   if(is.null(useToEst)){
     useToEst = t(sapply(names(nonExpressedGeneList),function(e) {
                     if(excludeMethod=='thresh'){
-                      return((dat[e,]/(nUMIs*sFracs[e,'est']))<exCut)
+                      return((dat[e,]/(sc$nUMIs*sFracs[e,'est']))<exCut)
                     }else{
-                      qVals = ppois(dat[e,]-1,nUMIs*sFracs[e,'est'],lower.tail=FALSE)
-                      if(excludeMethod=='qCut')
-                        qVals = p.adjust(qVals,method='BH')
-                      ifelse(qVals<0.05,FALSE,TRUE)
+                      qVals = ppois(dat[e,]-1,sc$nUMIs*sFracs[e,'est'],lower.tail=FALSE)
+                      qVals = p.adjust(qVals,method='BH')
+                      ifelse(qVals<exCut,FALSE,TRUE)
                     }
               }))
   }
   ###############################
   # Work out how to group cells
   if(is.null(cellGroups)){
-    o = order(nUMIs)
+    o = order(sc$nUMIs)
     #The expected counts per cell
-    expCnts = colSums(sFracs$est*useToEst)*nUMIs
+    expCnts = colSums(sFracs$est*useToEst)*sc$nUMIs
     #Split groups so that the expected soup count is respected
     cellGroups = cut_interval(cumsum(expCnts[o]),length=tgtSoupCntsPerGroup)
     #Reverse ordering
@@ -94,13 +103,14 @@ calculateContaminationFraction = function(toc,soupProfile,nonExpressedGeneList,u
   }
   ##############
   # Estimation
-  obsSoupCnts = estRateLims(colSums(dat*useToEst),nUMIs)*nUMIs
-  expSoupCnts = colSums(sFracs$est*useToEst)*nUMIs
+  obsSoupCnts = estRateLims(colSums(dat*useToEst),sc$nUMIs)*sc$nUMIs
+  expSoupCnts = colSums(sFracs$est*useToEst)*sc$nUMIs
   #Global estimate
-  globRho = estGrouped(obsSoupCnts$est,expSoupCnts,nUMIs,rep('Global',length(nUMIs)))
+  globRho = estGrouped(obsSoupCnts$est,expSoupCnts,sc$nUMIs,rep('Global',length(sc$nUMIs)))
   if('Global' %in% cellGroups)
     stop('Cell grouping named "Global" is reserved.  Please rename cell group.')
   # calculate rho in groups
-  groupRhos = estGrouped(obsSoupCnts$est,expSoupCnts,nUMIs,cellGroups)
-  return(rbind(globRho,groupRhos))
+  groupRhos = estGrouped(obsSoupCnts$est,expSoupCnts,sc$nUMIs,cellGroups)
+  sc$rhoGrouped = (rbind(globRho,groupRhos))
+  return(sc)
 }

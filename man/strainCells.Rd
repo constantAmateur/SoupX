@@ -4,27 +4,21 @@
 \alias{strainCells}
 \title{Remove background contamination from cell expression profile}
 \usage{
-strainCells(toc, rhos, soupProfiles, channelMap = NULL, groupVec = NULL,
-  zeroCut = 1/sum(toc), retainSparsity = FALSE)
+strainCells(scl, groupVec = NULL, retainSparsity = FALSE)
 }
 \arguments{
-\item{toc}{Table of UMIs for all droplets containing cells.}
+\item{scl}{SoupChannelList object.}
 
-\item{rhos}{Vector giving contamination fraction for each cell.}
-
-\item{soupProfiles}{Matrix giving the soup expression profile for each channel.  rows are genes and columns are channels, named as in \code{channelMap}.  If only one channel is used (i.e., if \code{channelMap} is NULL) can be the output of \code{\link{estimateSoup}}.}
-
-\item{channelMap}{Vector giving the name of the channel from which this cell is derived.  Must correspond to a column in \code{soupProfiles}.  If NULL, cells are assumed to all be from the one channel.}
-
-\item{groupVec}{Vector indicating how to group cells when calculating expression profile.  If NULL, a profile for each cell is calculated.}
-
-\item{zeroCut}{Set any estimated value less than this to zero.}
+\item{groupVec}{Vector named by unique droplet IDs of the format channelName___dropletBarcode that are unique across channels, with the entries indicating the name of the group each cell belongs to.  Cells in the same group are given an aggregated expression profile after background correction.  If NULL, all cells are corrected individually.  Any unmentioned cells are also corrected individually.}
 
 \item{retainSparsity}{The MLE optimisation is much faster for non-sparse matrices when \code{groupVec} is not NULL.  By default the code will coerce a sparse matrix to be non-sparse in this case unless this flag is set to TRUE.}
 }
 \value{
-A matrix containing background corrected expression profiles for each group specified.
+A modified version of \code{scl} that has an extra matrix, scl$strainedExp, that contains the corrected expression matrix.
 }
 \description{
 Given a table of counts composed of cells from multiple channels, estimates of the background contamination in each cell and the soup expression profile for each channel, calculates the true cell specific expression profile for each cell or a set of cells.  If background correction is being performed on cells all from the same channel, \code{soupProfiles} can be the output of \code{estimateSoup} for a single channel.
+}
+\seealso{
+\code{\link{adjustCnts}}
 }

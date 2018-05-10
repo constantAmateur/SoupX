@@ -2,17 +2,15 @@
 % Please edit documentation in R/inferNonExpressedGenes.R
 \name{inferNonExpressedGenes}
 \alias{inferNonExpressedGenes}
-\title{Plots the genes most likely to be non-expressed in some fraction of cells}
+\title{Calculates the genes most likely to be non-expressed in some fraction of cells}
 \usage{
-inferNonExpressedGenes(toc, soupProfile)
+inferNonExpressedGenes(scl)
 }
 \arguments{
-\item{toc}{Table of UMIs for all cells.}
-
-\item{soupProfile}{The soup profile for this channel (output of \code{\link{estimateSoup}}).  One of \code{soupProfile} or \code{tod} must be specified.}
+\item{scl}{A ChannelList or SoupChannelList object.}
 }
 \value{
-A table summarising the suitability of each gene as a candidate for estimating contamination.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
+A modified version of \code{scl} with a \code{nonExpressedGenes} entry containing a table summarising the suitability of each gene as a candidate for estimating contamination for each channel.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
 }
 \description{
 Ideally, prior biological knowledge can be used to select a set of genes that are known to be non-expressed in at least some cells, that can be used to estimate the contamination fraction.  For solid tissues, blood is a ubiquitous and unavoidable contaminant, making Haemoglobin genes ideal for this estimation (as they are genuinely expressed only in red blood cells, which can be trivially identified).
@@ -20,7 +18,5 @@ Ideally, prior biological knowledge can be used to select a set of genes that ar
 \details{
 The purpose of this function is to attempt to identify genes that are highly cell specific and so can be used to estimate background contamination in those cells that do not express them.  Although it would be possible to select these algorithmically, this is deliberately not done as selection of inappropriate genes can lead to over estimation of the contamination fraction and over correction of the expression profiles.  Instead, this function produces a diagnostic plot and a series of tables that the user should use to guide together with their biological knowledge to select sensible candidates.  Usually 1 or 2 highly expressed genes are sufficient to get a good channel level estimation of the contamination fraction, which is preferable to using genes of uncertain validity.
 
-If \code{soupProfile} is not given, \code{tod} must be given as it will be used to estimate the soup profile from the empty droplets.
-
-The names of markers can be passed to \code{\link{plotMarkerDistribution}} using the parameters \code{nonExpressedGeneList} to visualise candidate genes.
+The names of markers produced by this function can then be passed to \code{\link{plotMarkerDistribution}} using the parameters \code{nonExpressedGeneList} to visualise candidate genes.
 }
