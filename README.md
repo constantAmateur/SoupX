@@ -2,19 +2,10 @@
 
 R package for the estimation and removal of cell free mRNA contamination in droplet based single cell RNA-seq data
 
-## Changelog
-
-### v0.2.0
-
-A fairly major overhaul of the data structures used by the package.  Not compatible with previous versions.
-
-### v0.1.1
-
-Some bug fixes to plotting routines.
-
 ## Installation
 
 The package can be installed by running
+
 ```R
 devtools::install_github("constantAmateur/SoupX")
 ```
@@ -23,7 +14,7 @@ devtools::install_github("constantAmateur/SoupX")
 
 The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
 
-A detailed vignette is provided with the package and can be found in the "vignettes" folder or viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.pdf).
+A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.pdf).
 
 ## General remarks
 
@@ -77,6 +68,16 @@ or something similar.
 ### Global estimates of rho
 
 Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
+
+# Changelog
+
+## v0.2.0
+
+A fairly major overhaul of the data structures used by the package.  Not compatible with previous versions.
+
+## v0.1.1
+
+Some bug fixes to plotting routines.
 
 # License
 
