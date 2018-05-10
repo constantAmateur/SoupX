@@ -23,7 +23,7 @@ devtools::install_github("constantAmateur/SoupX")
 
 The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.html).
+A detailed vignette is provided with the package and can be found in the "vignettes" folder.
 
 ## General remarks
 
