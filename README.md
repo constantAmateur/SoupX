@@ -69,13 +69,13 @@ or something similar.
 
 Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
 
-# Changelog
+## Changelog
 
-## v0.2.0
+### v0.2.0
 
 A fairly major overhaul of the data structures used by the package.  Not compatible with previous versions.
 
-## v0.1.1
+### v0.1.1
 
 Some bug fixes to plotting routines.
 
