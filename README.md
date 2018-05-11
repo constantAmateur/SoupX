@@ -1,6 +1,20 @@
 # SoupX
 
-R package for the estimation and removal of cell free mRNA contamination in droplet based single cell RNA-seq data
+An R package for the estimation and removal of cell free mRNA contamination in droplet based single cell RNA-seq data.
+
+The problem this package attempts to solve is that all droplet based single cell RNA-seq experiments also capture ambient mRNAs present in the input solution along with cell specific mRNAs of interest.  This contamination is ubiquitous and can vary hugely between experiments (2% - 50%), although around 10% seems reasonably common.
+
+There's no way to know in advance what the contamination is in an experiment, although solid tumours and low-viability cells tend to produce higher contamination fractions.  As the source of the contaminating mRNAs is lysed cells in the input solution, the profile of the contamination is experiment specific and produces a batch effect. 
+
+Even if you decide you don't want to use the SoupX correction methods for whatever reason, you should at least want to know how contaminated your data are.
+
+As a quick example, look at the [PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).
+
+![Quick annotation](PBMC_annotation.png)
+
+B-cells should produce antibody genes like IGKC, T-cells and MNP should not.  But without correction, many appear as if they do.  This is because the T-cells also capture the ambient mRNA "soup" containing IGKC mRNAs.  SoupX corrects for this and retains expression only where it should be.
+
+![IGKC expressing cells in red](IGKC_comparison.png)
 
 ## Installation
 
@@ -70,6 +84,10 @@ or something similar.
 Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
 
 ## Changelog
+
+### v0.2.1
+
+Update documentation and modify plot functions to return source data.frame.
 
 ### v0.2.0
 

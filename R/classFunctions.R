@@ -19,6 +19,8 @@ SoupChannel = function(tod,toc,channelName,...){
   out = list(tod=tod,toc=toc,channelName=channelName)
   out = c(out,list(...))
   out$nUMIs = colSums(toc)
+  #Get the droplet UMIs as well, as that's a useful thing to have
+  out$nDropUMIs = colSums(tod)
   class(out) = c('list','SoupChannel')
   out
 }

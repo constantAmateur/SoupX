@@ -31,6 +31,7 @@ plotChannelContamination = function(sc,channelName,showErrorBars=TRUE){
     geom_hline(aes(yintercept=ifelse(isLogged,log10(globRho$upper),globRho$upper)),linetype=2,colour='red') +
     ylab('Contamination Fraction') +
     xlab('log10(nUMIs/cell)')
+  gg$df = rhos
   return(gg)
 }
 
@@ -56,6 +57,7 @@ plotSoupCorrelation = function(sc,channelName){
     geom_abline(intercept=0,slope=1) +
     ylab('log10(Soup Expression)')+
     xlab('log10(Aggregate cell Expression)')
+  gg$df = df
   return(gg)
 }
 
@@ -144,6 +146,7 @@ plotMarkerDistribution = function(sc,channelName,nonExpressedGeneList,maxCells=1
     labs(colour='expressed\nby cell')+
     ylab('log10(observed/expected)') +
     xlab('Marker group')
+  gg$df = df
   return(gg)
 }
 
@@ -194,6 +197,7 @@ plotMarkerMap = function(scl,geneSet,DR,ratLims=c(-2,2)){
                         guide='colorbar',
                         limits=ratLims
                         )
+    gg$df = DR
     gg
 }
 
@@ -295,6 +299,8 @@ plotChangeMap = function(scl,geneSet,DR,dataType=c('binary','counts','expression
     facet_wrap(~correction)
   if(dataType=='ratio')
     gg = gg + scale_colour_gradientn(colours=rainbow(50),limits=c(-1,1))
+  #Store the input in case the user wants to make their own plot
+  gg$df = dfs
   gg
 }
 

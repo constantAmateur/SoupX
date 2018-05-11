@@ -9,6 +9,11 @@ output:
   html_document: default
 ---
 
+```{r global_options, include=FALSE}
+library(knitr)
+opts_chunk$set(tidy=TRUE)
+```
+
 #Introduction
 
 Before we get started with the specifics of example data sets and using the R package, it is worth understanding at a broad level what the problem this package aims to solve is and how it goes about doing it.  Of course, the best way of doing this is by [reading the pre-print](https://www.biorxiv.org/content/early/2018/04/20/303727), it's not long I promise.  But if you can't be bothered doing that or just want a refresher, I'll try and recap the main points.
@@ -360,3 +365,48 @@ srat
 #Remove the data we downloaded
 rm -rf SoupX_pbmc4k_demo
 ```
+
+```{r, include=FALSE}
+#Some extra bits of code for making example plots
+#Basic annotation
+cMap = c('0'='MNP',
+         '1'='CD8 T-Cell',
+         '2'='CD8 T-Cell',
+         '3'='CD4 T-Cell',
+         '4'='B-Cell',
+         '5'='CD4 T-Cell',
+         '6'='NK',
+         '7'='B-Cell',
+         '8'='NK',
+         '9'='MNP',
+         '10'='MNP',
+         '11'='?')
+PBMC_DR$Annotation = factor(cMap[as.character(PBMC_DR$Cluster)])
+mids = lapply(split(PBMC_DR[,1:2],PBMC_DR$Annotation),apply,2,mean)
+mids = cbind(as.data.frame(do.call(rbind,mids)),Annotation=names(mids))
+mids[1,1:2]= mids[1,1:2]+5
+gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
+  geom_point(aes(colour=Annotation)) +
+  geom_label(data=mids,aes(label=Annotation),size=16)+
+  guides(colour=FALSE)+
+  theme_grey(base_size = 36) +
+  xlab('tSNE1')+
+  ylab('tSNE2')
+png('PBMC_Annotation.png',width=960,height=960)
+plot(gg)
+dev.off()
+#Tarted up before and after shots
+gg = plotChangeMap(scl,'IGKC',PBMC_DR,includePanels=c('Uncorrected','CorrectedCounts'))
+gg = ggplot(gg$df,aes(RD1,RD2)) +
+  geom_point(data=gg$df[!gg$df$data,],colour='#808080',size=2) +
+  geom_point(data=gg$df[gg$df$data,],colour='#e60000',size=4) +
+  facet_grid(~correction) +
+  xlab('tSNE1') +
+  ylab('tSNE2') +
+  theme_grey(base_size = 36) +
+  ggtitle("IGKC expression (red) before and after decontamination")
+png('IGKC_comparison.png',width=1920,height=960)
+plot(gg)
+dev.off()
+```
+
