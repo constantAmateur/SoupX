@@ -26,7 +26,7 @@ devtools::install_github("constantAmateur/SoupX")
 
 ## Documentation
 
-The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
+The methodology implemented in this package is explained in detail in [this paper](https://www.biorxiv.org/content/early/2018/04/20/30372).  
 
 A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.pdf).
 
