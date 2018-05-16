@@ -10,7 +10,7 @@ Even if you decide you don't want to use the SoupX correction methods for whatev
 
 As a quick example, look at the [PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).
 
-![Quick annotation](PBMC_annotation.png)
+![Quick annotation](PBMC_Annotation.png)
 
 B-cells should produce antibody genes like IGKC, T-cells and MNP should not.  But without correction, many appear as if they do.  This is because the T-cells also capture the ambient mRNA "soup" containing IGKC mRNAs.  SoupX corrects for this and retains expression only where it should be.
 
