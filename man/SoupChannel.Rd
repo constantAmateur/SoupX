@@ -4,7 +4,8 @@
 \alias{SoupChannel}
 \title{Construct a SoupChannel object}
 \usage{
-SoupChannel(tod, toc, channelName, ...)
+SoupChannel(tod, toc, channelName, soupRange = c(0, 10),
+  keepDroplets = FALSE, ...)
 }
 \arguments{
 \item{tod}{Table of droplets.  A matrix with columns being each droplet and rows each gene.}
@@ -13,6 +14,10 @@ SoupChannel(tod, toc, channelName, ...)
 
 \item{channelName}{A name for this channel.}
 
+\item{soupRange}{Which droplets to estimate soup from. Passed to \code{\link{estimateSoup}}.}
+
+\item{keepDroplets}{Should we keep the full table of droplets?  Passed to \code{\link{estimateSoup}}.}
+
 \item{...}{Any other named parameters to store.}
 }
 \value{
@@ -20,4 +25,7 @@ A SoupChannel object.
 }
 \description{
 Creates a SoupChannel object that contains everything related to the soup estimation of a single channel.
+}
+\seealso{
+SoupChannelList estimateSoup
 }

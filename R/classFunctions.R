@@ -6,9 +6,12 @@
 #' @param tod Table of droplets.  A matrix with columns being each droplet and rows each gene.
 #' @param toc Table of counts.  Just those columns of \code{tod} that contain cells.
 #' @param channelName A name for this channel.
+#' @param soupRange Which droplets to estimate soup from. Passed to \code{\link{estimateSoup}}.
+#' @param keepDroplets Should we keep the full table of droplets?  Passed to \code{\link{estimateSoup}}.
 #' @param ... Any other named parameters to store.
 #' @return A SoupChannel object.
-SoupChannel = function(tod,toc,channelName,...){
+#' @seealso SoupChannelList estimateSoup
+SoupChannel = function(tod,toc,channelName,soupRange=c(0,10),keepDroplets=FALSE,...){
   if(missing(channelName))
     channelName = 'UnknownChannel'
   #Make sure channelName is at the start of all channel names
@@ -22,6 +25,8 @@ SoupChannel = function(tod,toc,channelName,...){
   #Get the droplet UMIs as well, as that's a useful thing to have
   out$nDropUMIs = colSums(tod)
   class(out) = c('list','SoupChannel')
+  #Estimate the soup
+  out = estimateSoup(out,soupRange=soupRange,keepDroplets=keepDroplets)
   out
 }
 
@@ -33,6 +38,7 @@ SoupChannel = function(tod,toc,channelName,...){
 #' @param channels A list of \code{\link{SoupChannel}} objects.  Must be uniquely named.
 #' @param ... Any other named parameter to store.
 #' @return A SoupChannelList object.
+#' @seealso SoupChannel estimateSoup
 SoupChannelList = function(channels,...){
   if(any(duplicated(sapply(channels,function(e) e$channelName))))
     stop("Duplicate channel names found.  Please give each channel a unique name before continuing.")
@@ -43,6 +49,9 @@ SoupChannelList = function(channels,...){
   scl$nUMIs = colSums(scl$toc)
   scl = c(scl,list(...))
   class(scl) = c('list','SoupChannelList')
+  #Create summary of soup
+  scl$soupMatrix = do.call(cbind,lapply(scl$channels,function(e) e$soupProfile[,'est']))
+  rownames(scl$soupMatrix) = rownames(scl$toc)
   scl
 }
 

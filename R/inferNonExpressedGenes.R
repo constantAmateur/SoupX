@@ -11,7 +11,10 @@
 #' @return A modified version of \code{scl} with a \code{nonExpressedGenes} entry containing a table summarising the suitability of each gene as a candidate for estimating contamination for each channel.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
 inferNonExpressedGenes = function(scl){
   if(is(scl,'SoupChannelList')){
-    scl$channels = lapply(scl$channels,inferNonExpressedGenes)
+    for(i in seq_along(scl$channels)){
+      message("Inferring non-expressed genes for channel %s",names(scl$channels)[i])
+      scl$channels[[i]] = inferNonExpressedGenes(scl$channels[[i]])
+    }
   }else if(is(scl,'SoupChannel')){
     #Construct expression fractions from table of counts
     rat = t(t(scl$toc)/scl$nUMIs)

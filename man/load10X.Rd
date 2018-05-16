@@ -4,16 +4,21 @@
 \alias{load10X}
 \title{Load a collection of 10X data-sets}
 \usage{
-load10X(dataDirs, channelNames = NULL)
+load10X(dataDirs, channelNames = NULL, estimateSoup = TRUE, ...)
 }
 \arguments{
 \item{dataDirs}{Vector of top level cellranger output directories (the directory that contains the "raw_gene_bc_matrices" folder).}
 
 \item{channelNames}{To make droplet barcodes unique across experiment, each channel needs its own unique label.  If not given, this is set numerically.}
+
+\item{...}{Extra parameters passed to \code{SoupChannel} construction function.}
 }
 \value{
 A SoupChannelList object containing the count tables for each 10X dataset.
 }
 \description{
 Loads unfiltered 10X data from each data-set and identifies which droplets are cells using the cellranger defaults.
+}
+\seealso{
+SoupChannel SoupChannelList estimateSoup
 }

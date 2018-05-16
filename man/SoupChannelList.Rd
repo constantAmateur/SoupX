@@ -17,3 +17,6 @@ A SoupChannelList object.
 \description{
 Creates a SoupChannelList object that contains everything related to the soup estimation for a collection of channels, usually one experiment.
 }
+\seealso{
+SoupChannel estimateSoup
+}

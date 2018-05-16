@@ -5,9 +5,11 @@
 #' @export
 #' @param dataDirs Vector of top level cellranger output directories (the directory that contains the "raw_gene_bc_matrices" folder).
 #' @param channelNames To make droplet barcodes unique across experiment, each channel needs its own unique label.  If not given, this is set numerically.
+#' @param ... Extra parameters passed to \code{SoupChannel} construction function.
 #' @return A SoupChannelList object containing the count tables for each 10X dataset.
+#' @seealso SoupChannel SoupChannelList estimateSoup
 #' @importFrom Seurat Read10X
-load10X = function(dataDirs,channelNames=NULL){
+load10X = function(dataDirs,channelNames=NULL,estimateSoup=TRUE,...){
   if(is.null(channelNames))
     channelNames = sprintf('Channel%d',seq_along(dataDirs))
   channels = list()
@@ -23,7 +25,7 @@ load10X = function(dataDirs,channelNames=NULL){
     cells = gsub('-1','',cells[,1])
     #Get the index in the big table
     cellIdxs = match(cells,colnames(tod))
-    channels[[channelNames[i]]] = SoupChannel(tod,tod[,cellIdxs,drop=FALSE],channelName=channelNames[i],ref=ref,path=dataDir,dataType='10X')
+    channels[[channelNames[i]]] = SoupChannel(tod,tod[,cellIdxs,drop=FALSE],channelName=channelNames[i],ref=ref,path=dataDir,dataType='10X',...)
   }
   channels = SoupChannelList(channels)
   return(channels)

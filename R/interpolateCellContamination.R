@@ -22,7 +22,7 @@ interpolateCellContamination = function(sc,channelName,useGlobal=FALSE){
   }else{
     #Exclude the global estimate
     rhos = sc$rhoGrouped[rownames(sc$rhoGrouped)!='Global',]
-    fit = approx(rhos$nUMIs,rhos$est,nUMIs,rule=2)
+    fit = approx(rhos$nUMIs,rhos$est,sc$nUMIs,rule=2)
     sc$rhos = fit$y
   }
   #Add names
