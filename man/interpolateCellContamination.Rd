@@ -4,18 +4,27 @@
 \alias{interpolateCellContamination}
 \title{Get cell specific rho from binned values}
 \usage{
-interpolateCellContamination(sc, channelName, useGlobal = FALSE)
+interpolateCellContamination(sc, channelName,
+  interpolationMethod = c("lowess", "linear", "global"), useGlobal = FALSE,
+  ...)
 }
 \arguments{
 \item{sc}{A \code{SoupChannel} or \code{SoupChannelList} object.}
 
 \item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList} object.}
 
-\item{useGlobal}{If TRUE, set all cells to the global estimate of the contamination fraction.}
+\item{interpolationMethod}{Method to use to interpolate.  \code{lowess} uses a lowess fit, \code{linear} uses linear interpolation and \code{global} set all cells to have the global contamination value.}
+
+\item{useGlobal}{Sets interpolationMethod to \code{global}.  Retained for compatibility, use \code{interpolationMethod} directly instead.}
+
+\item{...}{Parameters to pass to interpolation method.}
 }
 \value{
 A modified version of \code{sc} with cell estimates of contamination stored in \code{rhos}.  If \code{sc} is a \code{SoupChannelList}, the named channel is updated in this way.
 }
 \description{
-Interpolates rho at each cell based on each cell's total number of UMIs from estimates in bins.
+Interpolates rho at each cell based on each cell's total number of UMIs from estimates in bins.  By default, uses a lowess fit.  But options for linear interpolation or simply using the global value are also available.
+}
+\details{
+If it is not very well known which cells truly express the genes used to estimate the contamination (e.g. which cells are red blood cells when using haemoglobin to estimate contamination), the estimate of rho is often "spikey".  That is, there will be clear overall trend, but bins that erroneously contain cells that should not have been used to estimate rho but have will have a very high contamination fraction.  In such cases it is better to interpolate using either lowess or the global estimate.
 }

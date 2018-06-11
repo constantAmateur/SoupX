@@ -1,13 +1,14 @@
 #' Plot contamination fraction for channel
 #'
-#' Plots the contamination fraction as a function of nUMIs in a droplet.
+#' Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red and lowess curve (usually used for interpolation) in green.
 #'
 #' @export
 #' @param sc A \code{SoupChannel} object on which \code{\link{calculateContaminationFraction}} has been run.  Alternatively, a \code{SoupChannelList} object containing such a channel.
 #' @param channelName The name of the channel to use if \code{sc} is a \code{SoupChannelList}
 #' @param showErrorBars Should error bars showing the 95 percent confidence interval on the estimate of rho be included?
+#' @param ... Extra parameters passed to lowess smoother.
 #' @return A ggplot2 object containing the plot.
-plotChannelContamination = function(sc,channelName,showErrorBars=TRUE){
+plotChannelContamination = function(sc,channelName,showErrorBars=TRUE,...){
   if(is(sc,'SoupChannelList'))
     sc = sc$channels[[channelName]]
   if(!is(sc,'SoupChannel'))
@@ -31,6 +32,14 @@ plotChannelContamination = function(sc,channelName,showErrorBars=TRUE){
     geom_hline(aes(yintercept=ifelse(isLogged,log10(globRho$upper),globRho$upper)),linetype=2,colour='red') +
     ylab('Contamination Fraction') +
     xlab('log10(nUMIs/cell)')
+  x = rhos$nUMIs
+  y = rhos$est
+  w = is.finite(y) & !is.na(y) & x>0
+  x = x[w]
+  y = y[w]
+  fit = lowess(y~x,...)
+  gg = gg + geom_line(data=data.frame(x=fit$x,y=fit$y),
+                      aes(log10(x),y),colour='green')
   gg$df = rhos
   return(gg)
 }

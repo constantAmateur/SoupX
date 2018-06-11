@@ -26,7 +26,7 @@ devtools::install_github("constantAmateur/SoupX")
 
 ## Documentation
 
-The methodology implemented in this package is explained in detail in [this paper](https://www.biorxiv.org/content/early/2018/04/20/303727).  
+The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
 
 A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.pdf).
 
@@ -84,6 +84,10 @@ or something similar.
 Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
 
 ## Changelog
+
+### v0.2.3
+
+Added lowess smoothing to interpolation and made it the default.  Modified various functions to allow single channel processing in a more natural way.  Some minor bug fixes.
 
 ### v0.2.2
 

@@ -7,7 +7,7 @@
 strainCells(scl, groupVec = NULL, retainSparsity = FALSE)
 }
 \arguments{
-\item{scl}{SoupChannelList object.}
+\item{scl}{A SoupChannel or SoupChannelList object.}
 
 \item{groupVec}{Vector named by unique droplet IDs of the format channelName___dropletBarcode that are unique across channels, with the entries indicating the name of the group each cell belongs to.  Cells in the same group are given an aggregated expression profile after background correction.  If NULL, all cells are corrected individually.  Any unmentioned cells are also corrected individually.}
 

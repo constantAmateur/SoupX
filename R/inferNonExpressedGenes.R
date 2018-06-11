@@ -12,7 +12,7 @@
 inferNonExpressedGenes = function(scl){
   if(is(scl,'SoupChannelList')){
     for(i in seq_along(scl$channels)){
-      message("Inferring non-expressed genes for channel %s",names(scl$channels)[i])
+      message(sprintf("Inferring non-expressed genes for channel %s",names(scl$channels)[i]))
       scl$channels[[i]] = inferNonExpressedGenes(scl$channels[[i]])
     }
   }else if(is(scl,'SoupChannel')){

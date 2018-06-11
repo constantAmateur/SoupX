@@ -4,7 +4,7 @@
 \alias{plotChannelContamination}
 \title{Plot contamination fraction for channel}
 \usage{
-plotChannelContamination(sc, channelName, showErrorBars = TRUE)
+plotChannelContamination(sc, channelName, showErrorBars = TRUE, ...)
 }
 \arguments{
 \item{sc}{A \code{SoupChannel} object on which \code{\link{calculateContaminationFraction}} has been run.  Alternatively, a \code{SoupChannelList} object containing such a channel.}
@@ -12,10 +12,12 @@ plotChannelContamination(sc, channelName, showErrorBars = TRUE)
 \item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
 
 \item{showErrorBars}{Should error bars showing the 95 percent confidence interval on the estimate of rho be included?}
+
+\item{...}{Extra parameters passed to lowess smoother.}
 }
 \value{
 A ggplot2 object containing the plot.
 }
 \description{
-Plots the contamination fraction as a function of nUMIs in a droplet.
+Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red and lowess curve (usually used for interpolation) in green.
 }

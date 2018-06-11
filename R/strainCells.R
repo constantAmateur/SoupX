@@ -3,14 +3,20 @@
 #' Given a table of counts composed of cells from multiple channels, estimates of the background contamination in each cell and the soup expression profile for each channel, calculates the true cell specific expression profile for each cell or a set of cells.  If background correction is being performed on cells all from the same channel, \code{soupProfiles} can be the output of \code{estimateSoup} for a single channel.
 #' 
 #' @export
-#' @param scl SoupChannelList object.
+#' @param scl A SoupChannel or SoupChannelList object.
 #' @param groupVec Vector named by unique droplet IDs of the format channelName___dropletBarcode that are unique across channels, with the entries indicating the name of the group each cell belongs to.  Cells in the same group are given an aggregated expression profile after background correction.  If NULL, all cells are corrected individually.  Any unmentioned cells are also corrected individually.
 #' @param retainSparsity The MLE optimisation is much faster for non-sparse matrices when \code{groupVec} is not NULL.  By default the code will coerce a sparse matrix to be non-sparse in this case unless this flag is set to TRUE.
 #' @seealso \code{\link{adjustCnts}}
 #' @return A modified version of \code{scl} that has an extra matrix, scl$strainedExp, that contains the corrected expression matrix.
 strainCells = function(scl,groupVec=NULL,retainSparsity=FALSE){
+  if(is(scl,'SoupChannel')){
+    scl = strainCells(SoupChannelList(list(scl)),groupVec=groupVec,retainSparsity=retainSparsity)
+    sc = scl$channels[[1]]
+    sc$strainedExp = scl$strainedExp
+    return(sc)
+  }
   if(!is(scl,'SoupChannelList'))
-    stop("scl must be an object of type SoupChannelList")
+    stop("scl must be an object of type SoupChannel or SoupChannelList")
   if(any(sapply(scl$channels,function(e) is.null(e$rhos))))
     stop("Cell specific contamination fractions must be calculated for all channels.")
   #Get the big global list of rhos

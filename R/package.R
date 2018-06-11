@@ -14,4 +14,5 @@
 #' @name SoupX
 #' @import ggplot2
 #' @importFrom Matrix colSums rowSums t
+#' @importFrom stats lowess
 NULL

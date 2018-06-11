@@ -7,7 +7,7 @@
 adjustCounts(scl, pCut = 0.01, verbose = TRUE)
 }
 \arguments{
-\item{scl}{A SoupChannelList object for which rho has been calculated.}
+\item{scl}{A SoupChannel or SoupChannelList object for which rho has been calculated.}
 
 \item{pCut}{The threshold for excluding counts.}
 

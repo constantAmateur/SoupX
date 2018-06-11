@@ -46,7 +46,7 @@ SoupChannelList = function(channels,...){
   names(channels) = sapply(channels,function(e) e$channelName)
   scl = list(channels=channels)
   scl$toc = do.call(cbind,lapply(channels,function(e) e$toc))
-  scl$nUMIs = colSums(scl$toc)
+  scl$nUMIs = do.call(c,lapply(channels,function(e) e$nUMIs))
   scl = c(scl,list(...))
   class(scl) = c('list','SoupChannelList')
   #Create summary of soup

@@ -3,13 +3,20 @@
 #' Explicitly drop counts from the count matrix in order of most likely to be soup to least likely until we have removed as many counts as we expect there to be soup molecules in each cell.  The actual removal criteria is to calculate the probability of each count being from the soup in each cell, pMol, and the probability of removing another soup molecule from this cell, pSoup, and keep sequentially removing counts until pSoup*pMol<pCut.  That is, pSoup makes sure we don't throw out many more than we expect to be present in each cell and pMol makes sure we don't throw out any molecule that is unlikely to be soup.
 #'
 #' @export
-#' @param scl A SoupChannelList object for which rho has been calculated.
+#' @param scl A SoupChannel or SoupChannelList object for which rho has been calculated.
 #' @param pCut The threshold for excluding counts.
 #' @param verbose By default, this method prints out the 100 most removed genes by channel.  If this is set to FALSE, these are not printed.
 #' @seealso \code{\link{strainCells}}
 #' @return A modified version of \code{scl} with the corrected count matrix stored in atoc.
 #' @importFrom Matrix sparseMatrix
 adjustCounts = function(scl,pCut=0.01,verbose=TRUE){
+  #If we're just doing the one channel...
+  if(is(scl,'SoupChannel')){
+    scl = adjustCounts(SoupChannelList(list(scl)),pCut=pCut,verbose=verbose)
+    sc = scl$channels[[1]]
+    sc$atoc = scl$atoc
+    return(sc)
+  }
   scl$toc = as(scl$toc,'dgTMatrix')
   #Construct a global rho vector
   rhos = unlist(lapply(scl$channels,function(e) e$rhos),use.names=FALSE)
