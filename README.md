@@ -28,7 +28,9 @@ devtools::install_github("constantAmateur/SoupX")
 
 The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/vignettes/pbmcTutorial.html).
+A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/pbmcTutorial.html).  
+
+A second vignette discussing common issues with estimating the contamination can be found [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/estimatingContamination.html).
 
 ## General remarks
 
