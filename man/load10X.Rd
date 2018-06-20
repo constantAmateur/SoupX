@@ -4,7 +4,7 @@
 \alias{load10X}
 \title{Load a collection of 10X data-sets}
 \usage{
-load10X(dataDirs, channelNames = NULL, estimateSoup = TRUE, ...)
+load10X(dataDirs, channelNames = NULL, ...)
 }
 \arguments{
 \item{dataDirs}{Vector of top level cellranger output directories (the directory that contains the "raw_gene_bc_matrices" folder).}

@@ -9,7 +9,7 @@
 #' @return A SoupChannelList object containing the count tables for each 10X dataset.
 #' @seealso SoupChannel SoupChannelList estimateSoup
 #' @importFrom Seurat Read10X
-load10X = function(dataDirs,channelNames=NULL,estimateSoup=TRUE,...){
+load10X = function(dataDirs,channelNames=NULL,...){
   if(is.null(channelNames))
     channelNames = sprintf('Channel%d',seq_along(dataDirs))
   channels = list()

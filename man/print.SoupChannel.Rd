@@ -4,10 +4,12 @@
 \alias{print.SoupChannel}
 \title{Print method for SoupChannel}
 \usage{
-\method{print}{SoupChannel}(sc)
+\method{print}{SoupChannel}(x, ...)
 }
 \arguments{
-\item{sc}{A SoupChannel object.}
+\item{x}{A SoupChannel object.}
+
+\item{...}{Currently unused.}
 }
 \description{
 Prints a summary of a SoupChannel object.

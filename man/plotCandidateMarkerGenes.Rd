@@ -9,11 +9,11 @@ plotCandidateMarkerGenes(sc, channel, n = 20, ...)
 \arguments{
 \item{sc}{A SoupChannel or SoupChannelList object.}
 
+\item{channel}{The name of the channel to plot.  Ignored if \code{sc} is of class \code{SoupChannel}.}
+
 \item{n}{Number of candidate genes to plot.}
 
 \item{...}{Parameters passed to \code{\link{plotMarkerDistribution}}.}
-
-\item{channelName}{The name of the channel to plot.  Ignored if \code{sc} is of class \code{SoupChannel}.}
 }
 \value{
 A ggplot2 object containing the plot.

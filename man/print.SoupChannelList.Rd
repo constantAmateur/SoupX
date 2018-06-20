@@ -4,10 +4,12 @@
 \alias{print.SoupChannelList}
 \title{Print method for SoupChannelList}
 \usage{
-\method{print}{SoupChannelList}(scl)
+\method{print}{SoupChannelList}(x, ...)
 }
 \arguments{
-\item{scl}{A SoupChannelList object.}
+\item{x}{A SoupChannelList object.}
+
+\item{...}{Currently unused.}
 }
 \description{
 Prints a summary of a SoupChannelList object.

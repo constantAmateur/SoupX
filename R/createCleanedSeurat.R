@@ -17,7 +17,12 @@ createCleanedSeurat = function(scl,scale.factor=1e4,...){
   cleaned = log(1+scl$strainedExp*scale.factor)
   #Now cram into the normalisation slot.  This is ugggggggly
   params = list(object=srat,assay.type='RNA',normalization.method='LogNormalize',scale.factor=scale.factor,display.progress=TRUE)
-  srat = Seurat:::SetCalcParams(object = srat,calculation='NormalizeData',...=params)
+  #Pulled from Seurat:::SetCalcParams
+  srat@calc.params[['NormalizeData']] = params
+  srat@calc.params[['NormalizeData']]$object = NULL
+  srat@calc.params[['NormalizeData']]$object2 = NULL
+  srat@calc.params[['NormalizeData']]$time = Sys.time()
+  #srat = Seurat:::SetCalcParams(object = srat,calculation='NormalizeData',...=params)
   srat = SetAssayData(object=srat,assay.type='RNA',slot='data',new.data=cleaned)
   #Update the meta-data to account for correction
   srat@meta.data$nGene = colSums(srat@data>0)

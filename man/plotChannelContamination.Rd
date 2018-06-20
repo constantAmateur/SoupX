@@ -19,5 +19,5 @@ plotChannelContamination(sc, channelName, showErrorBars = TRUE, ...)
 A ggplot2 object containing the plot.
 }
 \description{
-Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red and lowess curve (usually used for interpolation) in green.
+Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red, the lowess curve in green and a monotonically decreasing lowess fit in blue (this is the value used by default).
 }

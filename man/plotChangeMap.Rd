@@ -17,9 +17,9 @@ plotChangeMap(scl, geneSet, DR, dataType = c("binary", "counts", "expression",
 
 \item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, expression converts everything to expression.  Ratio plots the ratio of everything to uncorrected (and uncorrected is shown as z-scaled expression).}
 
-\item{includePanels}{Which of 'Uncorrected','CorrectedExpression' and 'CorrectedCounts' to include.  Also sets plot ordering.}
+\item{logData}{Should we log data?}
 
-\item{log}{Should we log data?}
+\item{includePanels}{Which of 'Uncorrected','CorrectedExpression' and 'CorrectedCounts' to include.  Also sets plot ordering.}
 }
 \value{
 A ggplot2 containing the plot.

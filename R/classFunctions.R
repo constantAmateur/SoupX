@@ -61,9 +61,10 @@ SoupChannelList = function(channels,...){
 #' Prints a summary of a SoupChannel object.
 #' 
 #' @export
-#' @param sc A SoupChannel object.
-print.SoupChannel = function(sc) {
-  message(sprintf("Channel named %s with %d genes and %d cells",sc$channelName,nrow(sc$toc),ncol(sc$toc)))
+#' @param x A SoupChannel object.
+#' @param ... Currently unused.
+print.SoupChannel = function(x,...) {
+  message(sprintf("Channel named %s with %d genes and %d cells",x$channelName,nrow(x$toc),ncol(x$toc)))
 }
 
 #' Print method for SoupChannelList
@@ -71,7 +72,8 @@ print.SoupChannel = function(sc) {
 #' Prints a summary of a SoupChannelList object.
 #' 
 #' @export
-#' @param scl A SoupChannelList object.
-print.SoupChannelList = function(scl) {
-  message(sprintf("%d Channels with %d genes and %d cells in total.",length(scl$channels),nrow(scl$toc),ncol(scl$toc)))
+#' @param x A SoupChannelList object.
+#' @param ... Currently unused.
+print.SoupChannelList = function(x,...) {
+  message(sprintf("%d Channels with %d genes and %d cells in total.",length(x$channels),nrow(x$toc),ncol(x$toc)))
 }

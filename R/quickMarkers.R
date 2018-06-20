@@ -12,7 +12,6 @@
 #' @param N Number of marker genes to return per cluster.
 #' @param expressCut Value above which a gene is considered expressed.
 #' @return data.frame with top N markers (or all that pass the hypergeometric test) and their statistics for each cluster.
-#' @seealso \code{\link{tfidf}}
 quickMarkers = function(toc,clusters,N=10,expressCut=0){
   #Convert to the more manipulable format
   toc = as(toc,'dgTMatrix')

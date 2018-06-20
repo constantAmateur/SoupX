@@ -10,6 +10,8 @@ findCells(sc, nonExpressedGeneList, useToEst = NULL, minUMIs = 100,
 \arguments{
 \item{sc}{A SoupChannel object for which the table of droplets has been retained.  That is, \code{\link{estimateSoup}} was run with \code{keepDroplets=TRUE}.}
 
+\item{nonExpressedGeneList}{Genes to use for estimating contamination fraction (see \code{\link{calculateContaminationFraction}})}
+
 \item{useToEst}{Which cells to use which sets of genes to estimate contamination (see \code{\link{calculateContaminationFraction}})}
 
 \item{minUMIs}{Don't test any droplet with fewer than this many UMIs.}
@@ -17,10 +19,6 @@ findCells(sc, nonExpressedGeneList, useToEst = NULL, minUMIs = 100,
 \item{minGenes}{Don't test any droplet with fewer than this many detected genes.}
 
 \item{contCut}{The maximum allowable contamination fraction for a droplet containing a cell.}
-
-\item{soupProfile}{The expression profile of the soup for this channel, as calculated by \code{\link{estimateSoup}}.}
-
-\item{nonExpressedGenes}{Genes to use for estimating contamination fraction (see \code{\link{calculateContaminationFraction}})}
 }
 \value{
 A data.frame with contamination fraction estimates for each droplet and a p-value and FDR for rejecting the NULL hypothesis and accepting this droplet as a cell.

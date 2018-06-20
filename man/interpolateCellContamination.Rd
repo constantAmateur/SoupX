@@ -5,15 +5,17 @@
 \title{Get cell specific rho from binned values}
 \usage{
 interpolateCellContamination(sc, channelName,
-  interpolationMethod = c("lowess", "linear", "global"), useGlobal = FALSE,
-  ...)
+  interpolationMethod = c("decreasingLowess", "lowess", "linear", "fixed"),
+  fixedContaminationValue = NA, useGlobal = FALSE, ...)
 }
 \arguments{
 \item{sc}{A \code{SoupChannel} or \code{SoupChannelList} object.}
 
 \item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList} object.}
 
-\item{interpolationMethod}{Method to use to interpolate.  \code{lowess} uses a lowess fit, \code{linear} uses linear interpolation and \code{global} set all cells to have the global contamination value.}
+\item{interpolationMethod}{Method to use to interpolate.  \code{lowess} uses a constrained monotonically decreasing lowess fit, \code{lowess} uses a lowess fit without constraints, \code{linear} uses linear interpolation and \code{fixed} set all cells to have the global contamination value, which is set by \code{fixedContaminationValue}.}
+
+\item{fixedContaminationValue}{The fixed contamination value to used when \code{interpolationMethod} is set to "fixed".  If set to NA, use the global contamination estimate.}
 
 \item{useGlobal}{Sets interpolationMethod to \code{global}.  Retained for compatibility, use \code{interpolationMethod} directly instead.}
 

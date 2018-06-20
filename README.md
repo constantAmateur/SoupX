@@ -10,11 +10,11 @@ Even if you decide you don't want to use the SoupX correction methods for whatev
 
 As a quick example, look at the [PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).
 
-![Quick annotation](PBMC_Annotation.png)
+![Quick annotation](inst/images/PBMC_Annotation.png)
 
 B-cells should produce antibody genes like IGKC, T-cells and MNP should not.  But without correction, many appear as if they do.  This is because the T-cells also capture the ambient mRNA "soup" containing IGKC mRNAs.  SoupX corrects for this and retains expression only where it should be.
 
-![IGKC expressing cells in red](IGKC_comparison.png)
+![IGKC expressing cells in red](inst/images/IGKC_comparison.png)
 
 ## Installation
 
@@ -28,7 +28,7 @@ devtools::install_github("constantAmateur/SoupX")
 
 The methodology implemented in this package is explained in detail in [this paper](https://github.com/constantAmateur/SoupX).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://github.com/constantAmateur/SoupX/tree/master/vignettes/pbmcTutorial.pdf).
+A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/vignettes/pbmcTutorial.html).
 
 ## General remarks
 
@@ -84,6 +84,10 @@ or something similar.
 Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
 
 ## Changelog
+
+### v0.3.0
+
+Now passes R CMD check without warnings or errors.  Added extra vignette on estimating contamination correctly.  Changed the arguments for the interpolateCellContamination function and made montonically decreasing lowess the default interpolation method.  A number of other plotting improvements.
 
 ### v0.2.3
 

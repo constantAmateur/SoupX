@@ -5,8 +5,7 @@
 \title{Calculate the contamination fraction}
 \usage{
 calculateContaminationFraction(sc, channelName, nonExpressedGeneList,
-  useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000,
-  excludeMethod = c("pCut", "thresh"), exCut = 0.05)
+  useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000, ...)
 }
 \arguments{
 \item{sc}{A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.}
@@ -21,9 +20,7 @@ calculateContaminationFraction(sc, channelName, nonExpressedGeneList,
 
 \item{tgtSoupCntsPerGroup}{When automatically constructing groups, ensure that each group has roughly this many expected soup counts.}
 
-\item{excludeMethod}{Which method to use to exclude cells (see details).}
-
-\item{exCut}{Cut-off used by \code{excludeMethod} (see details).}
+\item{...}{Extra parameters passed to \code{\link{identifyExpressingCells}}.}
 }
 \value{
 A modified version of \code{sc} with the entry \code{rhoGrouped} containing estimates of the contamination fraction for different groupings.  If \code{sc} is a SoupChannelList object the returned object has the channel named \code{channelName} modified to include the estimates of rho.

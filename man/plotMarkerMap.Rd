@@ -12,6 +12,8 @@ plotMarkerMap(scl, geneSet, DR, ratLims = c(-2, 2))
 \item{geneSet}{A vector with the names of the genes to aggregate and plot evidence for.}
 
 \item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>___<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.}
+
+\item{ratLims}{Truncate log ratios at these values.}
 }
 \value{
 A ggplot2 containing the plot.

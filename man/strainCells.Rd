@@ -20,5 +20,5 @@ A modified version of \code{scl} that has an extra matrix, scl$strainedExp, that
 Given a table of counts composed of cells from multiple channels, estimates of the background contamination in each cell and the soup expression profile for each channel, calculates the true cell specific expression profile for each cell or a set of cells.  If background correction is being performed on cells all from the same channel, \code{soupProfiles} can be the output of \code{estimateSoup} for a single channel.
 }
 \seealso{
-\code{\link{adjustCnts}}
+\code{\link{adjustCounts}}
 }

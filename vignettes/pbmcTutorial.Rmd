@@ -7,6 +7,10 @@ fig_height: 6
 output: 
   pdf_document: default
   html_document: default
+vignette: >
+  %\VignetteIndexEntry{PBMC Demonstration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r global_options, include=FALSE}
@@ -14,7 +18,7 @@ library(knitr)
 opts_chunk$set(tidy=TRUE)
 ```
 
-#Introduction
+# Introduction
 
 Before we get started with the specifics of example data sets and using the R package, it is worth understanding at a broad level what the problem this package aims to solve is and how it goes about doing it.  Of course, the best way of doing this is by [reading the pre-print](https://www.biorxiv.org/content/early/2018/04/20/303727), it's not long I promise.  But if you can't be bothered doing that or just want a refresher, I'll try and recap the main points.
 
@@ -32,7 +36,7 @@ The method to do this consists of three parts:
 
 Generally, steps 1 and 3 are pretty simple and robust. The part of using this method that requires the most care and thought is step 2, i.e., working out how much background is present in each cell. This is parametrised as rho in the code, with rho=0 meaning no contamination and rho=1 meaning 100% of UMIs in a droplet are soup.
 
-##Soup specific genes
+## Soup specific genes
 
 To estimate the contamination fraction, we need a set of genes that we know (usually through prior biological knowledge) are not expressed in a cell, so by measuring how much expression we observe we can infer the contamination fraction. That is, we need a set of genes that we know the only source of expression is the soup.  The difficulty is that this set of genes is different for every cell.
 
@@ -70,7 +74,7 @@ nonExpressedGeneList = list(HEM=c('HBB','HBA2'),IG = c('IGKC','IGHG1','IGHG3'))
 
 or something similar.
 
-#Getting started
+# Getting started
 
 You install this package like any other R package.  The simplest way is to use the `devtools` `install_github` function as follows:
 
@@ -84,21 +88,21 @@ Once installed, you can load the package in the usual way,
 library(SoupX)
 ```
 
-#PBMC dataset
+# PBMC dataset
 
 Like every other single cell tool out there, we are going to use one of the 10X PBMC data sets to demonstrate how to use this package.  Specifically, we will use this [PBMC dataset](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).  The starting point is to download the [raw](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz) and [filtered](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz) cellranger output and extract them to a folder somewhere as follows.
 
-```{bash download, results="hide"}
+```{bash download, results="hide",message=FALSE,warning=FALSE}
 mkdir SoupX_pbmc4k_demo
 cd SoupX_pbmc4k_demo
-wget http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz
-wget http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz
+wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz
+wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz
 tar zxf pbmc4k_raw_gene_bc_matrices.tar.gz
 tar zxf pbmc4k_filtered_gene_bc_matrices.tar.gz
 cd ..
 ```
 
-##Loading the data
+## Loading the data
 
 SoupX comes with a convenience function for loading 10X data processed using cellranger.  We will use this to get started.
 
@@ -110,7 +114,7 @@ scl = load10X(dataDirs)
 
 This will load the 10X data into a `SoupChannelList` object.  This is just a list with some special properties.  It has one sub-list per 10X "channel" and some additional entries giving global properties.  
 
-##Profiling the soup
+## Profiling the soup
 
 Having loaded our data, the first thing to do is to estimate what the expression profile of the soup looks like.  This is actually done for us automatically by the object construction function `SoupChannel` called by `load10X`.  Generally, we'd never really want to explicitly make this call, but just so it's explicit that this is the first part of the method we will show how to do so here.
 
@@ -123,7 +127,7 @@ Which modifies the `Channel1` `SoupChannel` object to add estimates of the soup 
 
 Note that we had to reload the `scl` object to do this.  By default, when the soup is estimated the table of droplets `tod` is dropped to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
 
-##Visual sanity checks
+## Visual sanity checks
 
 Often times really what you want is to get a rough sense of whether the expression of a gene (or group of genes) in a set of cells is derived from the soup or not.  At this stage we already have enough information to do just this.  Before proceeding, we will briefly discuss how to do this.
 
@@ -160,13 +164,13 @@ Looking at the resulting plot, we see that the cells in the B-cell cluster have 
 
 We have made these plots assuming each droplet is pure soup, which is obviously not true.  Nevertheless, this can still be a useful quick and easy sanity check to perform.
 
-##Estimating the contamination fraction
+## Estimating the contamination fraction
 
 The most difficult part of correcting for background contamination is accurately estimating how much contamination is present in each cell.  In order to do this, we need to find a set of genes that we are as certain will not be expressed in each cell.  See the section above on "Soup Specific Genes" for an example which may make this clearer.
 
 For some experiments, such as solid tissue studies where red cell lysis buffer has been used, it is obvious what genes to use for this purpose.  In the case of bloody solid tissue, haemoglobin genes will be a ubiquitous contaminant and are not actually produced by any cell other than red blood cells in most contexts.  If this is the case, you can skip the next section and proceed straight to estimating contamination.
 
-###Picking soup specific genes
+### Picking soup specific genes
 
 However, some times it is not obvious in advance which genes are highly specific to just one population of cells.  This is the case with our PBMC data, which is not a solid tissue biopsy and so it is not clear which gene sets to use to estimate the contamination.  To aid our selection, SoupX provides a series of (hopefully) useful functions,
 
@@ -204,7 +208,7 @@ igGenes = c('IGHA1','IGHA2','IGHG1','IGHG2','IGHG3','IGHG4','IGHD','IGHE','IGHM'
 
 it doesn't matter if some of these are not expressed in our data, they will then just not contribute to the estimate.
 
-###Estimating the contamination fraction
+### Estimating the contamination fraction
 
 Having decided on a set of genes with which to estimate the contamination, we perform the estimation as follows,
 
@@ -240,7 +244,7 @@ Of course, the best thing to do is to have some biological knowledge what each c
 
 I have deliberately picked a "hard" data-set to demonstrate the considerations involved.  In practice, there is often one gene family that is extremely specific (e.g. red blood cells and haemoglobin) and basically any sensible cut-off will produce good results.
 
-###Cell level contamination fraction
+### Cell level contamination fraction
 
 Having estimated the contamination fraction in bins and globally, we now need to decide what value to assign to each cell.  You are free to do whatever you think best, but a convenience function `interpolateCellContamination` implements the most common choices.  By default, each cell's contamination will be linearly interpolated from the binned estimates we produced above.  As there were too many outliers and no strong trend, we will instead use the global estimate for all cells.
 
@@ -254,7 +258,7 @@ This will create a new entry in `scl$Channel1` named `rhos` which contains the e
 head(scl$channels$Channel1$rhos)
 ```
 
-##Correcting expression profile
+## Correcting expression profile
 
 We have now calculated the contamination fraction for each cell and would like to use this to remove the contamination.  SoupX provides two ways of doing this, each with different advantages.  The first is to produce an expression matrix, where columns and cells, rows are genes and the entry represents the best estimate of the soup corrected expression fraction for that gene/cell combination.  That is, columns all sum to 1.  The second is to produce a modified table of counts, where SoupX attempts to remove all the counts that are likely to be soup in origin.
 
@@ -270,7 +274,7 @@ scl = strainCells(scl)
 scl = adjustCounts(scl)
 ```
 
-###Investigating changes in expression
+### Investigating changes in expression
 
 Before proceeding let's have a look at what this has done.  We can get a sense for what has been the most strongly decreased by looking at the fraction of cells that were non-zero now set to zero after correction.
 
@@ -313,7 +317,7 @@ This illustrates one of the key advantages of the expression matrix correction, 
 (cntSoggy-cntAdjusted)[grep('^MT-',names(cntAdjusted))]
 ```
 
-###Visualising expression distribution
+### Visualising expression distribution
 
 Way back at the start, we did a quick visualisation to look at how the ratio of IGKC expression to pure soup was distributed.  Now that we've corrected our data, we can see how that compares to our corrected data.  The function `plotChangeMap` can help us with this.  By default it plots which cells express a gene and which don't.
 
@@ -351,7 +355,7 @@ Clearly the interpretation of which cells are expressing these genes changes qui
 
 The change in pattern will be interesting for many other genes, feel free to explore for yourself.  In general, the changes tend to be largest for genes that are highly expressed but only in a specific context.
 
-##Integrating with downstream tools
+## Integrating with downstream tools
 
 Of course, the next thing you'll want to do is to load this corrected expression matrix into some downstream analysis tool and further analyse the data.
 
@@ -396,7 +400,7 @@ gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
   xlab('tSNE1')+
   ylab('tSNE2')
 #This assumes this is being run with rmarkdown::render with defaults, which places the current working directory to the vignette directory.
-png('../PBMC_Annotation.png',width=960,height=960)
+png('../inst/images/PBMC_Annotation.png',width=960,height=960)
 plot(gg)
 dev.off()
 #Tarted up before and after shots
@@ -409,7 +413,7 @@ gg = ggplot(gg$df,aes(RD1,RD2)) +
   ylab('tSNE2') +
   theme_grey(base_size = 36) +
   ggtitle("IGKC expression (red) before and after decontamination")
-png('../IGKC_comparison.png',width=1920,height=960)
+png('../inst/images/IGKC_comparison.png',width=1920,height=960)
 plot(gg)
 dev.off()
 ```

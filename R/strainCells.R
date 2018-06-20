@@ -6,7 +6,7 @@
 #' @param scl A SoupChannel or SoupChannelList object.
 #' @param groupVec Vector named by unique droplet IDs of the format channelName___dropletBarcode that are unique across channels, with the entries indicating the name of the group each cell belongs to.  Cells in the same group are given an aggregated expression profile after background correction.  If NULL, all cells are corrected individually.  Any unmentioned cells are also corrected individually.
 #' @param retainSparsity The MLE optimisation is much faster for non-sparse matrices when \code{groupVec} is not NULL.  By default the code will coerce a sparse matrix to be non-sparse in this case unless this flag is set to TRUE.
-#' @seealso \code{\link{adjustCnts}}
+#' @seealso \code{\link{adjustCounts}}
 #' @return A modified version of \code{scl} that has an extra matrix, scl$strainedExp, that contains the corrected expression matrix.
 strainCells = function(scl,groupVec=NULL,retainSparsity=FALSE){
   if(is(scl,'SoupChannel')){
@@ -43,7 +43,7 @@ strainCells = function(scl,groupVec=NULL,retainSparsity=FALSE){
     w = colnames(scl$toc)[!(colnames(scl$toc)%in%names(groupVec))]
     groupVec[w] = seq_len(w)+max(groupVec)+1
     groupNoms = c(groupNoms,w)
-    groupVec = setNames(groupNoms[groupVec],names(groupvec))
+    groupVec = setNames(groupNoms[groupVec],names(groupVec))
     #Re-order as toc
     groupVec = groupVec[colnames(scl$toc)]
     #Create the output matrix
@@ -74,7 +74,7 @@ strainCells = function(scl,groupVec=NULL,retainSparsity=FALSE){
         dat = toc[i,w]
         rs = rhos[w]
         tots = scl$nUMIs[w]
-        soups = soupMatrix[i,cMap[w]]
+        soups = scl$soupMatrix[i,cMap[w]]
         A = tots*rhos*soups
         B = tots*(1-rhos)
         optFun = function(par) { -1*sum(dpois(dat,A+B*par,log=TRUE))

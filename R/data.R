@@ -26,3 +26,12 @@
 #' }
 #' @source \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 NULL
+#' Basic Soup Channel List for PBMC data
+#' 
+#' Basic output of \code{\link{load10X}} on PBMC data
+#' 
+#' @name PBMC_SCL
+#' @usage data(PBMC_SCL)
+#' @docType data
+#' @format One SoupChannelList object
+NULL

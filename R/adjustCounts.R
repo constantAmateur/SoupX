@@ -112,4 +112,3 @@ adjustCounts = function(scl,pCut=0.01,verbose=TRUE){
   #  print(quantile((pMax*pSoup)))
   #}
 }
-

@@ -1,6 +1,6 @@
 #' Plot contamination fraction for channel
 #'
-#' Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red and lowess curve (usually used for interpolation) in green.
+#' Plots the contamination fraction as a function of nUMIs in a droplet.  Global estimate is shown in red, the lowess curve in green and a monotonically decreasing lowess fit in blue (this is the value used by default).
 #'
 #' @export
 #' @param sc A \code{SoupChannel} object on which \code{\link{calculateContaminationFraction}} has been run.  Alternatively, a \code{SoupChannelList} object containing such a channel.
@@ -37,9 +37,26 @@ plotChannelContamination = function(sc,channelName,showErrorBars=TRUE,...){
   w = is.finite(y) & !is.na(y) & x>0
   x = x[w]
   y = y[w]
-  fit = lowess(y~x,...)
-  gg = gg + geom_line(data=data.frame(x=fit$x,y=fit$y),
+  #Local lowess with different default f
+  localLowess = function(...) {
+    if('f' %in% names(list(...)))
+      lowess(...)
+    lowess(...,f=0.1)
+  }
+  fit_raw = lowess(y~x,...)
+  #Plot the spline
+  gg = gg + geom_line(data=data.frame(x=fit_raw$x,y=fit_raw$y),
                       aes(log10(x),y),colour='green')
+  #Limit the fit to monotonic spline and plot that too
+  fit = fit_raw
+  w = fit$y <= cummin(fit$y)
+  if(sum(w)>1){
+    fit$y[!w] = approx(fit$x[w],fit$y[w],fit$x,rule=2)$y[!w]
+  }else{
+    fit$y = rep(fit$y[w],length(fit$y))
+  }
+  gg = gg + geom_line(data=data.frame(x=fit$x,y=fit$y),
+                      aes(log10(x),y),colour='blue')
   gg$df = rhos
   return(gg)
 }
@@ -76,7 +93,7 @@ plotSoupCorrelation = function(sc,channelName){
 #' 
 #' @export
 #' @param sc A SoupChannel or SoupChannelList object.
-#' @param channelName The name of the channel to plot.  Ignored if \code{sc} is of class \code{SoupChannel}.
+#' @param channel The name of the channel to plot.  Ignored if \code{sc} is of class \code{SoupChannel}.
 #' @param n Number of candidate genes to plot.
 #' @param ... Parameters passed to \code{\link{plotMarkerDistribution}}.
 #' @return A ggplot2 object containing the plot.
@@ -150,6 +167,7 @@ plotMarkerDistribution = function(sc,channelName,nonExpressedGeneList,maxCells=1
     geom_violin() +
     geom_jitter(data=df[df$Barcode %in% keep,],aes(colour=qVals<qCut,size=log10(expCnts)),height=0,width=0.3,alpha=1/2) +
     geom_line(data=globRhos,aes(MarkerGroup,rho,group=1),colour='red') +
+    geom_point(data=globRhos,aes(MarkerGroup,rho,group=1),colour='red',shape=2) +
     scale_colour_manual(values=c('TRUE'='red','FALSE'='black')) + 
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
     labs(colour='expressed\nby cell')+
@@ -167,6 +185,7 @@ plotMarkerDistribution = function(sc,channelName,nonExpressedGeneList,maxCells=1
 #' @param scl SoupChannelList object.
 #' @param geneSet A vector with the names of the genes to aggregate and plot evidence for.
 #' @param DR A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>___<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.
+#' @param ratLims Truncate log ratios at these values.
 #' @return A ggplot2 containing the plot.
 plotMarkerMap = function(scl,geneSet,DR,ratLims=c(-2,2)){
   #Make sure DR is sensible
@@ -219,7 +238,7 @@ plotMarkerMap = function(scl,geneSet,DR,ratLims=c(-2,2)){
 #' @param geneSet A vector with the names of the genes to aggregate and plot evidence for.
 #' @param DR A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>___<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.
 #' @param dataType How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, expression converts everything to expression.  Ratio plots the ratio of everything to uncorrected (and uncorrected is shown as z-scaled expression).
-#' @param log Should we log data?
+#' @param logData Should we log data?
 #' @param includePanels Which of 'Uncorrected','CorrectedExpression' and 'CorrectedCounts' to include.  Also sets plot ordering.
 #' @return A ggplot2 containing the plot.
 plotChangeMap = function(scl,geneSet,DR,dataType=c('binary','counts','expression','ratio'),logData=TRUE,includePanels=c('Uncorrected','CorrectedExpression','CorrectedCounts')){
