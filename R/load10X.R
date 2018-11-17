@@ -22,9 +22,8 @@ load10X = function(dataDirs,channelNames=NULL,...){
     tod = Read10X(file.path(dataDir,'raw_gene_bc_matrices',ref))
     #Get the barcodes that cell ranger considers to contain cells
     cells = read.delim(file.path(dataDir,'filtered_gene_bc_matrices',ref,'barcodes.tsv'),sep='\t',header=FALSE)
-    cells = gsub('-1','',cells[,1])
     #Get the index in the big table
-    cellIdxs = match(cells,colnames(tod))
+    cellIdxs = match(cells$V1,colnames(tod))
     channels[[channelNames[i]]] = SoupChannel(tod,tod[,cellIdxs,drop=FALSE],channelName=channelNames[i],ref=ref,path=dataDir,dataType='10X',...)
   }
   channels = SoupChannelList(channels)
