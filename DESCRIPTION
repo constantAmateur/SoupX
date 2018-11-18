@@ -7,7 +7,7 @@ Maintainer: Matthew Daniel Young <my4@sanger.ac.uk>
 Description: A package for quantifying, profiling and removing cell free mRNA contamination (the "soup") from droplet based single cell RNA-seq experiments.
 Suggests: knitr
 VignetteBuilder: knitr
-Imports: ggplot2, Matrix, methods, Seurat
+Imports: ggplot2, Matrix, methods, Seurat, future.apply
 Depends: R (>= 2.10)
 LazyData: true
 License: GPL-2
