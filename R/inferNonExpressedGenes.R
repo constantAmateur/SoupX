@@ -30,8 +30,14 @@ inferNonExpressedGenes = function(scl){
     nCells = table(factor(rownames(rat)[rat@i+1],levels=rownames(rat)))
     lowCount = table(factor(rownames(rat)[rat@i[rat@x<1]+1],levels=rownames(rat)))
     tmp = split(rat@x,rownames(rat)[rat@i+1])[names(nCells)]
-    extremity = sapply(tmp,function(e) sum(log10(e)**2)/length(e))[names(lowCount)]
-    centrality = sapply(tmp,function(e) sum(1/(1+log10(e)**2))/length(e))[names(lowCount)]
+    if (do.par){
+      plan(multiprocess)
+      extremity = future_sapply(tmp,function(e) sum(log10(e)**2)/length(e))[names(lowCount)]
+      centrality = future_sapply(tmp,function(e) sum(1/(1+log10(e)**2))/length(e))[names(lowCount)]
+    } else {
+      extremity = sapply(tmp,function(e) sum(log10(e)**2)/length(e))[names(lowCount)]
+      centrality = sapply(tmp,function(e) sum(1/(1+log10(e)**2))/length(e))[names(lowCount)]
+    }
     minFrac = log10(sapply(tmp,min))
     #Construct targets data frame
     targets = data.frame(nCells = as.integer(nCells),
