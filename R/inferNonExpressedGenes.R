@@ -14,7 +14,7 @@ inferNonExpressedGenes = function(scl, do.par = FALSE){
   if(is(scl,'SoupChannelList')){
     for(i in seq_along(scl$channels)){
       message(sprintf("Inferring non-expressed genes for channel %s",names(scl$channels)[i]))
-      scl$channels[[i]] = inferNonExpressedGenes(scl$channels[[i]])
+      scl$channels[[i]] = inferNonExpressedGenes(scl$channels[[i]], do.par = do.par)
     }
   }else if(is(scl,'SoupChannel')){
     #Construct expression fractions from table of counts
