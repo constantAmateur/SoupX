@@ -6,10 +6,11 @@
 #'
 #' The names of markers produced by this function can then be passed to \code{\link{plotMarkerDistribution}} using the parameters \code{nonExpressedGeneList} to visualise candidate genes.
 #'
+#' @import future.apply
 #' @export
 #' @param scl A ChannelList or SoupChannelList object.
 #' @return A modified version of \code{scl} with a \code{nonExpressedGenes} entry containing a table summarising the suitability of each gene as a candidate for estimating contamination for each channel.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
-inferNonExpressedGenes = function(scl){
+inferNonExpressedGenes = function(scl, do.par = FALSE){
   if(is(scl,'SoupChannelList')){
     for(i in seq_along(scl$channels)){
       message(sprintf("Inferring non-expressed genes for channel %s",names(scl$channels)[i]))

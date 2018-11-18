@@ -11,6 +11,6 @@ Imports: ggplot2, Matrix, methods, Seurat, future.apply
 Depends: R (>= 2.10)
 LazyData: true
 License: GPL-2
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 NeedsCompilation: no
 Packaged: 2018-06-20 10:26:40 UTC; ubuntu

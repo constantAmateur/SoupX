@@ -4,7 +4,7 @@
 \alias{inferNonExpressedGenes}
 \title{Calculates the genes most likely to be non-expressed in some fraction of cells}
 \usage{
-inferNonExpressedGenes(scl)
+inferNonExpressedGenes(scl, do.par = FALSE)
 }
 \arguments{
 \item{scl}{A ChannelList or SoupChannelList object.}
