@@ -5,7 +5,8 @@
 \title{Calculate the contamination fraction}
 \usage{
 calculateContaminationFraction(sc, channelName, nonExpressedGeneList,
-  useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000, ...)
+  useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000,
+  ...)
 }
 \arguments{
 \item{sc}{A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.}

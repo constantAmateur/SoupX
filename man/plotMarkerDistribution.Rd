@@ -4,8 +4,8 @@
 \alias{plotMarkerDistribution}
 \title{Plots the distribution of the observed to expected expression for marker genes}
 \usage{
-plotMarkerDistribution(sc, channelName, nonExpressedGeneList, maxCells = 150,
-  minRho = 1, qCut = 0.05)
+plotMarkerDistribution(sc, channelName, nonExpressedGeneList,
+  maxCells = 150, minRho = 1, qCut = 0.05)
 }
 \arguments{
 \item{sc}{A SoupChannel or SoupChannelList object.}

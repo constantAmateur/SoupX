@@ -4,9 +4,10 @@
 \alias{plotChangeMap}
 \title{Plot maps comparing corrected/raw expression}
 \usage{
-plotChangeMap(scl, geneSet, DR, dataType = c("binary", "counts", "expression",
-  "ratio"), logData = TRUE, includePanels = c("Uncorrected",
-  "CorrectedExpression", "CorrectedCounts"))
+plotChangeMap(scl, geneSet, DR, dataType = c("binary", "counts",
+  "expression", "ratio"), logData = TRUE,
+  includePanels = c("Uncorrected", "CorrectedExpression",
+  "CorrectedCounts"))
 }
 \arguments{
 \item{scl}{SoupChannelList object.}

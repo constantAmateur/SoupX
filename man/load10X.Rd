@@ -4,12 +4,14 @@
 \alias{load10X}
 \title{Load a collection of 10X data-sets}
 \usage{
-load10X(dataDirs, channelNames = NULL, ...)
+load10X(dataDirs, channelNames = names(dataDirs), dropEns = TRUE, ...)
 }
 \arguments{
 \item{dataDirs}{Vector of top level cellranger output directories (the directory that contains the "raw_gene_bc_matrices" folder).}
 
 \item{channelNames}{To make droplet barcodes unique across experiment, each channel needs its own unique label.  If not given, this is set numerically.}
+
+\item{dropEns}{By default, genes are named in the format <ENSEMBL_ID>___<Gene_Symbol>.  If dropEns is set to TRUE, the ENESEMBL ID is dropped from the name.}
 
 \item{...}{Extra parameters passed to \code{SoupChannel} construction function.}
 }

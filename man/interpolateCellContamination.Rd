@@ -5,8 +5,8 @@
 \title{Get cell specific rho from binned values}
 \usage{
 interpolateCellContamination(sc, channelName,
-  interpolationMethod = c("decreasingLowess", "lowess", "linear", "fixed"),
-  fixedContaminationValue = NA, useGlobal = FALSE, ...)
+  interpolationMethod = c("decreasingLowess", "lowess", "linear",
+  "fixed"), fixedContaminationValue = NA, useGlobal = FALSE, ...)
 }
 \arguments{
 \item{sc}{A \code{SoupChannel} or \code{SoupChannelList} object.}
