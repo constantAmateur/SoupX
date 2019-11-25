@@ -4,23 +4,21 @@
 \alias{plotChangeMap}
 \title{Plot maps comparing corrected/raw expression}
 \usage{
-plotChangeMap(scl, geneSet, DR, dataType = c("binary", "counts",
-  "expression", "ratio"), logData = TRUE,
-  includePanels = c("Uncorrected", "CorrectedExpression",
-  "CorrectedCounts"))
+plotChangeMap(sc, cleanedMatrix, geneSet, DR, dataType = c("change",
+  "binary", "counts"), logData = TRUE)
 }
 \arguments{
-\item{scl}{SoupChannelList object.}
+\item{sc}{SoupChannel object.}
+
+\item{cleanedMatrix}{A cleaned matrix to compare against the raw one.  Usually the output of \code{\link{adjustCounts}}.}
 
 \item{geneSet}{A vector with the names of the genes to aggregate and plot evidence for.}
 
-\item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>___<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.}
+\item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>_<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.}
 
-\item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, expression converts everything to expression.  Ratio plots the ratio of everything to uncorrected (and uncorrected is shown as z-scaled expression).}
+\item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, change plots the relative fractional change (i.e., (old-new)/old) for each cell and is the default.}
 
-\item{logData}{Should we log data?}
-
-\item{includePanels}{Which of 'Uncorrected','CorrectedExpression' and 'CorrectedCounts' to include.  Also sets plot ordering.}
+\item{logData}{Should we log the thing we plot?}
 }
 \value{
 A ggplot2 containing the plot.

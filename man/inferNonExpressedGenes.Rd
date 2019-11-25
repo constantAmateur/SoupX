@@ -4,13 +4,15 @@
 \alias{inferNonExpressedGenes}
 \title{Calculates the genes most likely to be non-expressed in some fraction of cells}
 \usage{
-inferNonExpressedGenes(scl)
+inferNonExpressedGenes(sc, ...)
 }
 \arguments{
-\item{scl}{A ChannelList or SoupChannelList object.}
+\item{sc}{A ChannelList object.}
+
+\item{...}{Passed to estimateNonExpressingCells.}
 }
 \value{
-A modified version of \code{scl} with a \code{nonExpressedGenes} entry containing a table summarising the suitability of each gene as a candidate for estimating contamination for each channel.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
+A modified version of \code{sc} with a \code{nonExpressedGenes} entry containing a table summarising the suitability of each gene as a candidate for estimating contamination for each channel.  The columns in this table are respectively: the number of cells expressing this gene, the number of cells with expression less than the soup, the fraction that are low, an "extremity score" (mean squared log-ratio), a "centrality score" (mean of 1/(1+x^2)) and an indicator if this gene has passed the criteria for being potentially useful.
 }
 \description{
 Ideally, prior biological knowledge can be used to select a set of genes that are known to be non-expressed in at least some cells, that can be used to estimate the contamination fraction.  For solid tissues, blood is a ubiquitous and unavoidable contaminant, making Haemoglobin genes ideal for this estimation (as they are genuinely expressed only in red blood cells, which can be trivially identified).

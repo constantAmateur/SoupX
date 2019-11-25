@@ -4,12 +4,10 @@
 \alias{plotSoupCorrelation}
 \title{Plot correlation of expression profiles of soup and aggregated cells}
 \usage{
-plotSoupCorrelation(sc, channelName)
+plotSoupCorrelation(sc)
 }
 \arguments{
-\item{sc}{A SoupChannel or SoupChannelList object.}
-
-\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
+\item{sc}{A SoupChannel object.}
 }
 \value{
 A ggplot2 object containing the plot.

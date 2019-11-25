@@ -4,7 +4,7 @@
 \alias{SoupChannel}
 \title{Construct a SoupChannel object}
 \usage{
-SoupChannel(tod, toc, channelName, soupRange = c(0, 10),
+SoupChannel(tod, toc, metaData = NULL, soupRange = c(0, 10),
   keepDroplets = FALSE, ...)
 }
 \arguments{
@@ -12,7 +12,7 @@ SoupChannel(tod, toc, channelName, soupRange = c(0, 10),
 
 \item{toc}{Table of counts.  Just those columns of \code{tod} that contain cells.}
 
-\item{channelName}{A name for this channel.}
+\item{metaData}{Meta-data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.}
 
 \item{soupRange}{Which droplets to estimate soup from. Passed to \code{\link{estimateSoup}}.}
 

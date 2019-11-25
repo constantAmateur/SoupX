@@ -4,37 +4,37 @@
 \alias{calculateContaminationFraction}
 \title{Calculate the contamination fraction}
 \usage{
-calculateContaminationFraction(sc, channelName, nonExpressedGeneList,
-  useToEst = NULL, cellGroups = NULL, tgtSoupCntsPerGroup = 1000,
-  ...)
+calculateContaminationFraction(sc, nonExpressedGeneList, useToEst,
+  verbose = TRUE, cellSpecificEstimates = FALSE,
+  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1))
 }
 \arguments{
-\item{sc}{A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.}
-
-\item{channelName}{The name of a channel to use if \code{sc} is a SoupChannelList object.}
+\item{sc}{A SoupChannel object.}
 
 \item{nonExpressedGeneList}{A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).}
 
-\item{useToEst}{A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).}
+\item{useToEst}{A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.}
 
-\item{cellGroups}{A vector indicating which cells to group together when estimating rho (see details).}
+\item{verbose}{Print best estimate.}
 
-\item{tgtSoupCntsPerGroup}{When automatically constructing groups, ensure that each group has roughly this many expected soup counts.}
+\item{cellSpecificEstimates}{Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.}
 
-\item{...}{Extra parameters passed to \code{\link{identifyExpressingCells}}.}
+\item{stanParams}{Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.}
 }
 \value{
-A modified version of \code{sc} with the entry \code{rhoGrouped} containing estimates of the contamination fraction for different groupings.  If \code{sc} is a SoupChannelList object the returned object has the channel named \code{channelName} modified to include the estimates of rho.
+A modified version of \code{sc} with estimates of the contamination (rho) added to the metaData table.
 }
 \description{
-This function calculates the contamination fraction using the markers provided in groups of cells.  A list containing genes that can be expected to be non-expressed in at least one cell must be given.  That is, this list contains sets of genes (e.g. Haemoglobin genes) that can be assumed to be completely absent from certain cells.  For example, haemoglobin genes should not be expressed in anything that is not a red blood cell.  The contamination fraction is then calculated using these genes in groups of cells.
+This function computes the contamination fraction using two user-provided bits of information.  Firstly, a list of sets of genes that can be biologically assumed to be abscent in at least some cells in your data set.  For example, these might be haemoglobin genes or immunoglobulin genes, which should not be expressed outside of erythroyctes and antibody producing cells respectively.
 }
 \details{
-As well as sets of non expressed genes, the user must indicate which cells these genes are non-expressed in.  Continuing with the haemoglobin gene example, this would mean the user must indicate which cells contain red blood cells.  This information is given by the parameter \code{useToEst} which should be a boolean matrix with columns representing cells in toc and rows representing groups of genes defined in \code{nonExpressedGeneList}.  If this is set to NULL, the code will attempt to estimate which cells truly express each set of genes in \code{nonExpressedGeneList} based on the method given in \code{cellExpressionMethod}.
+Secondly, this function needs to know which cells definitely do not express the gene sets described above.  Continuing with the haemoglobin example, which are the erythrocytes that are producing haemoglobin mRNAs and which are non-erythrocytes that we can safely assume produce no such genes.  The assumption made is any expression from a gene set in cell marked as a "non-expressor" for that gene set, must be derived from the soup.  Therefore, the level of contamination present can be estimated from the amount of expression of these genes seen in these cells.
 
-Unless a large list of non expressed genes can be given, there is usually insufficient power to estimate the contamination fraction separately for each cell.  Therefore, the user should supply a vector to \code{cellGroups} that can be used to group together cells when estimating the contamination fraction.  If set to NULL, the code will group together cells with a similar number of total UMIs in groups such that the expected number of soup counts in each group is roughly equal to \code{tgtSoupCntsPerGroup}.
+Most often, the genesets are user supplied based on your knowledge of the experiment and the cells in which they are genuinely expressed is estimated using \code{\link{estimateNonExpressingCells}}.  However, they can also be supplied directly if other information is available.
 
-The different methods to determine which cells to exclude which genes for are:
-  pCut - Exclude any cell where we can reject the null hypothesis (Poisson test) that rho<=1 for a set of genes at the \code{exCut} level.
-  thresh - Exclude any cell for which the estimate for rho exceeds \code{exCut}.
+Usually, there is very little variation in the contamination fraction within a channel and very little power to detect the contamination accurately at a single cell level.  As such, the default mode of operation simply estimates one value of the contamination fraction that is applied to all cells in a channel.  However, to allow for circumstances where there is good power to detect fine grained contamination differences, a cell-specific estimation procedure can be invoked by setting \code{cellSpecificEstimates=TRUE}.
+
+The global model fits a simple Poisson glm to the aggregated count data across all cells.  The cell-specific model uses heirarchical Bayes estimation using STAN to share information between cells.  Note that this takes much longer and should only be used if you have a convincing reason.  In the most cases, a global estimate will do a good job.
+
+Finally, note that if you are not able to find a reliable set of genes to use for contamination estimation, or you do not trust the values produced, the contimantion fraction can be manually set by the user using \code{\link{setContaminationFraction}}.
 }

@@ -8,7 +8,7 @@
 #' - it should be easy to identify when it is truly expressed (i.e., when it's expressed, it should be highly expressed) 
 #' - it should be highly specific to a certain cell type or group of cell types so that when the expression level is low, you can be confident that the expression is coming from the soup and not a very low level of expression from the cell
 #'
-#' Spike-in RNAs are the best case scenario.  In the case where you do not have spike-ins and haemoglobin genes are not viable estimators, the user should begin by using the \link{inferNonExpressedGenes} function to plot those genes with bi-modal distributions that have a pattern of expression across cells that is consistent with high cell-type specificity.  The user should then select a set of genes that can be used for estimation from this list.  One or two high quality genes is usually sufficient to obtain a good estimate for the average contamination level of a channel.
+#' Spike-in RNAs are the best case scenario.  In the case where you do not have spike-ins and haemoglobin genes are not viable estimators, the user should begin by using the \link{plotMarkerDistribution} function to plot those genes with bi-modal distributions that have a pattern of expression across cells that is consistent with high cell-type specificity.  The user should then select a set of genes that can be used for estimation from this list.  One or two high quality genes is usually sufficient to obtain a good estimate for the average contamination level of a channel.
 #'
 #' @docType package
 #' @name SoupX
@@ -20,4 +20,4 @@
 #' @importFrom utils data read.delim setTxtProgressBar txtProgressBar
 #' @importFrom methods as is
 NULL
-utils::globalVariables(c('RD1','RD2','nUMIs','est','lower','upper','isLogged','MarkerGroup','Values','rho','qVals','logRatio'))
+utils::globalVariables(c('RD1','RD2','nUMIs','est','lower','upper','isLogged','MarkerGroup','Values','rho','qVals','logRatio','expSoupCnts','soupProfile'))

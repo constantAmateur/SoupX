@@ -2,23 +2,34 @@
 % Please edit documentation in R/adjustCounts.R
 \name{adjustCounts}
 \alias{adjustCounts}
-\title{Adjust counts to remove soup}
+\title{Remove background contamination from cell expression profile}
 \usage{
-adjustCounts(scl, pCut = 0.01, verbose = TRUE)
+adjustCounts(sc, roundToInt = FALSE, verbose = FALSE, tol = 0.001,
+  dropWholeCountsOnly = FALSE, pCut = 0.01)
 }
 \arguments{
-\item{scl}{A SoupChannel or SoupChannelList object for which rho has been calculated.}
+\item{sc}{A SoupChannel object.}
 
-\item{pCut}{The threshold for excluding counts.}
+\item{roundToInt}{Should the resulting matrix be rounded to integers?}
 
-\item{verbose}{By default, this method prints out the 100 most removed genes by channel.  If this is set to FALSE, these are not printed.}
+\item{verbose}{Should function be verbose?}
+
+\item{tol}{Allowed deviation from expected number of soup counts.  Don't change this.}
+
+\item{dropWholeCountsOnly}{Don't set this to TRUE unless you know what you're doing.  See details.}
+
+\item{pCut}{The p-value cut-off used when \code{dropWholeCountsOnly=TRUE}.}
 }
 \value{
-A modified version of \code{scl} with the corrected count matrix stored in atoc.
+A modified version of the table of counts, with background contamination removed.
 }
 \description{
-Explicitly drop counts from the count matrix in order of most likely to be soup to least likely until we have removed as many counts as we expect there to be soup molecules in each cell.  The actual removal criteria is to calculate the probability of each count being from the soup in each cell, pMol, and the probability of removing another soup molecule from this cell, pSoup, and keep sequentially removing counts until pSoup*pMol<pCut.  That is, pSoup makes sure we don't throw out many more than we expect to be present in each cell and pMol makes sure we don't throw out any molecule that is unlikely to be soup.
+After the level of background contamination has been estimated or specified for a channel, calculate the resulting corrected count matrix with background contamination removed.
 }
-\seealso{
-\code{\link{strainCells}}
+\details{
+This essentially subtracts off the mean expected background counts for each gene, then redistributes any "unused" counts.  A count is unused if its subtraction has no effect.  For example, subtracting a count from a gene that has zero counts to begin with.
+
+If \code{dropWholeCountsOnly=TRUE} then an aggressive alternative strategy is used.  **This is primarily kept for historical reasons and is not recommended.**  For each gene in each cell, this strategy either does nothing, or sets the counts to 0.  This is very effective at removing the smattering of low-level contamination, but leaves any gene that has a contribution from both background and the cell itself unchanged.  This estimation is done by sorting genes within each cell by their p-value under the null of the expected soup fraction.  So that genes that definitely do have a endogenous contribution are at the end of the list with p=0.  Those genes for which there is poor evidence of endogenous cell expression are removed, until we have removed approximately nUMIs*rho molecules.
+
+If \code{roundToInt=TRUE}, this function will round the result to integers.  That is, it will take the floor of the connected value and then round back up with probability equal to the fractional part of the number.
 }

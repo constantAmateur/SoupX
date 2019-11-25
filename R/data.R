@@ -1,10 +1,10 @@
 #' tSNE coordinates for PBMC data
 #' 
-#' tSNE coordinates for PBMC 4k data used in the vignette.  tSNE have been calculated using standard Seurat settings.  Also includes a column indicating which Seurat cluster each cell belongs to.
+#' tSNE coordinates for PBMC 4k data used in the vignette.  tSNE have been calculated using standard Seurat(v2) settings.  Also includes a column indicating which Seurat cluster each cell belongs to.
 #' 
-#' The full list of commands used to create this object (assuming \code{scl} is a \code{SoupChannelList} object containing the PBMC4k data):
+#' The full list of commands used to create this object (assuming \code{sc} is a \code{SoupChannel} object containing the PBMC4k data):
 #' \code{set.seed(1)}
-#' \code{srat = CreateSeuratObject(scl$toc)}
+#' \code{srat = CreateSeuratObject(sc$toc)}
 #' \code{srat = NormalizeData(srat)}
 #' \code{srat = ScaleData(srat)}
 #' \code{srat = FindVariableGenes(srat)}
@@ -25,13 +25,4 @@
 #'   \item{Cluster}{A factor giving cluster assignment}
 #' }
 #' @source \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
-NULL
-#' Basic Soup Channel List for PBMC data
-#' 
-#' Basic output of \code{\link{load10X}} on PBMC data
-#' 
-#' @name PBMC_SCL
-#' @usage data(PBMC_SCL)
-#' @docType data
-#' @format One SoupChannelList object
 NULL

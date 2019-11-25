@@ -4,23 +4,31 @@
 \alias{load10X}
 \title{Load a collection of 10X data-sets}
 \usage{
-load10X(dataDirs, channelNames = names(dataDirs), dropEns = TRUE, ...)
+load10X(dataDir, cellIDs = NULL, channelName = NULL,
+  readArgs = list(), includeFeatures = c("Gene Expression"),
+  verbose = TRUE, ...)
 }
 \arguments{
-\item{dataDirs}{Vector of top level cellranger output directories (the directory that contains the "raw_gene_bc_matrices" folder).}
+\item{dataDir}{Top level cellranger output directory (the directory that contains the "raw_gene_bc_matrices" folder).}
 
-\item{channelNames}{To make droplet barcodes unique across experiment, each channel needs its own unique label.  If not given, this is set numerically.}
+\item{cellIDs}{Barcodes of droplets that contain cells.  If NULL, use the default cellranger set.}
 
-\item{dropEns}{By default, genes are named in the format <ENSEMBL_ID>___<Gene_Symbol>.  If dropEns is set to TRUE, the ENESEMBL ID is dropped from the name.}
+\item{channelName}{The name of the channel to store.  If NULL set to either \code{names(dataDir)} or \code{dataDir} is no name is set.}
+
+\item{readArgs}{A list of extra parameters passed to \code{Seurat::Read10X}.}
+
+\item{includeFeatures}{If multiple feature types are present, keep only the types mentioned here and collapse to a single matrix.}
+
+\item{verbose}{Be verbose?}
 
 \item{...}{Extra parameters passed to \code{SoupChannel} construction function.}
 }
 \value{
-A SoupChannelList object containing the count tables for each 10X dataset.
+A SoupChannel object containing the count tables for the 10X dataset.
 }
 \description{
 Loads unfiltered 10X data from each data-set and identifies which droplets are cells using the cellranger defaults.
 }
 \seealso{
-SoupChannel SoupChannelList estimateSoup
+SoupChannel estimateSoup
 }

@@ -8,13 +8,7 @@ There's no way to know in advance what the contamination is in an experiment, al
 
 Even if you decide you don't want to use the SoupX correction methods for whatever reason, you should at least want to know how contaminated your data are.
 
-As a quick example, look at the [PBMC data](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).
-
-![Quick annotation](inst/images/PBMC_Annotation.png)
-
-B-cells should produce antibody genes like IGKC, T-cells and MNP should not.  But without correction, many appear as if they do.  This is because the T-cells also capture the ambient mRNA "soup" containing IGKC mRNAs.  SoupX corrects for this and retains expression only where it should be.
-
-![IGKC expressing cells in red](inst/images/IGKC_comparison.png)
+**NOTE:** The package focus has changed from v1.0.0 onwards.  The basic syntax is mostly the same as before, but there are three key differences in approach.  Firstly, you can no longer load multiple channels simultaneously and the concept of a "SoupChannelList" has been removed.  This is emphasises that the contamination rate should be calculated independently for each channel.  Secondly, the heuristic tools for guiding the choice of genes to use in estimating the conamination have been reworked.  In particular, they will no longer explicitly return gene names in any fashion.  This is to prevent users from using these genes blindly **which they absolutely should not do**.  The `plotMarkerDistribution` function will still suggest genes, but they will only be plotted, not returned directly in any way.  Finally, the default estimation has been switched to estimate one global contamination fraction across all cells in a channel.  In most cases there is little evidence of a strong per-cell difference in contamination rate and even where this does exist, there is seldom the power to calculate it.
 
 ## Installation
 
@@ -30,62 +24,24 @@ The methodology implemented in this package is explained in detail in [this pape
 
 A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/pbmcTutorial.html).  
 
-A second vignette discussing common issues with estimating the contamination can be found [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/estimatingContamination.html).
+## Frequently Asked Questions
 
-## General remarks
+### I can't find a good set of genes to estimate the contamination fraction.
 
-Although the following commentary assumes 10X data, the method should apply to any droplet based single cell sequencing data.
+Generally the gene sets that work best are sets of genes highly specific to a cell type that is present in your data at low frequency.  Think HB genes and erythrocytes, IG genes and B-cells, TPSB2/TPSAB1 and Mast cells, etc.  Before trying anything more esoteric, it is usually a good idea to at least try out the most commonly successful gene sets, particularly HB genes.  If this fails, the `plotMarkerDistribution` function can be used to get further inspiration as described in the vignette.  If all of this yields nothing, we suggest either leaving your data uncorrected or trying a range of corrections to see what effect this has on your downstream analysis.  In our experience most experiments have somewhere between 2-10% contamination.
 
-### Method overview
+### `estimateNonExpressingCells` can't find any cells to use to estimate contamiantion.
 
-There are three parts to the SoupX method:
-
-1. Estimate what the expression profile of the soup is.  
-2. For each cell, calculate what fraction of UMIs are from the soup.
-3. Adjust the expression of cells by subtracting the contamination fraction (estimated in 2.) times the soup expression profile (calculated in 1.)
-
-Generally, steps 1 and 3 are pretty simple and robust.  The part of using this method that requires the most care and though is step 2, i.e., working out how much background is present in each cell.  This is parametrised as rho in the code, with rho=0 meaning no contamination and rho=1 meaning 100% of UMIs in a droplet are soup.
-
-
-### Soup specific genes
-
-To estimate the contamination fraction, we need a set of genes that we know (usually through prior biological knowledge) are not expressed in a cell, so by measuring how much expression we observe we can infer the contamination fraction.  The difficulty is that this set of genes is different for every cell.
-
-Say we're using HBB,HBA2 and IGKC to estimate the contamination fraction.  Let's now look at what happens in a few hypothetical cells:
-
-Cell 1 - Is a red blood cell so expresses HBB and HBA2, but should not express IGKC.  For this cell we want to use IGKC to estimate the contamination fraction but not HBB,HBA2.
-
-Cell 2 - Is a B-Cell so should express IGKC, but not HBB or HBA2.  For this cell we want to use HBB and HBA2 to estimate the contamination fraction, but not IGKC.
-
-Cell 3 - Is an endothelial cell, so should not express any of HBB,HBA2 or IGKC.  So we want to use all three to estimate the contamination fraction.
-
-Basically we are trying to identify in each cell, a set of genes we know the cell does not express so we can estimate the contamination fraction using the expression we do see.
-
-Now obviously the method doesn't know anything about the biology and we haven't told it what's a B cell, a RBC or anything else.  There is nothing stopping you supplying that information if you do have it and that will of course give the best results.
-
-But absent this information, the trick is to use the expression level of the cell to identify when not to use a gene to estimate the contamination fraction in a cell.  This is why we want genes with a bimodal expression distribution across cells, because it tells us that when a cell expresses the gene, it expresses it a lot so we can easily identify these cells and not use that gene for the estimation in those cells.  Given a set of genes that we suspect may be useful, the function `plotMarkerDistribution` can be used to visualise how this gene's expression is distributed across cells.  To continue our example:
-
-Cell 1 - The measured expression of HBB and HBA2 is 10 times what we'd expect if the droplet was filled with soup, so the method will not use either of these genes to calculate rho.  On the other hand IGKC is about .05 times the value we'd get for pure soup, so that is used.
-
-Cell 2 - HBB/HBA2 have values around .05 times the soup.  IGKC is off the charts at 100 times what we'd expect in the soup.  So the method concludes that this cell is expressing IGKC and so uses only HBB/HBA2 to estimate rho.
-
-Cell 3 - All three are at around .05, so all are used to estimate rho.
-
-To get a more accurate estimate, groups with a similar biological function are grouped together so they're either used or excluded as a group.  This is why the parameter nonExpressedGeneList is given as a list.  Each entry in the list is a group of genes that are grouped biologically.  So in our example we would set it like:
-
-nonExpressedGeneList = list(HEM=c('HBB','HBA2'),IG = c('IGKC'))
-
-in this example we'd probably want to include other IG genes and Haemoglobin genes even through they're not as high up our bimodal list, as they should correlate biologically. That is
-
-nonExpressedGeneList = list(HEM=c('HBB','HBA2'),IG = c('IGKC','IGHG1','IGHG3'))
-
-or something similar.
-
-### Global estimates of rho
-
-Although the code will attempt to estimate rho down to the individual cell level given a large enough list of soup determining genes, a global average tends to work pretty well in most instances.  If you find that your cell specific estimates vary wildly, it is advisable to simply use the global trend for all cells in a channel.  That is, if you can get a good channel level estimate of rho, you won't be too far off by just assuming all cells in that channel have that contamination fraction.
+At this point we assume that you have chosen a set (or sets) of genes to use to estimate the contamination.  The default behaviour (with 10X data) is to look for cells with strong evidence of endogenous expression of these gene sets in all cells, then exclude any cluster with a cell that has strong evidence of endogenous expression.  This conservative behaviour is designed to stop the over-estimation of the contamination fraction, but can sometimes make estimation difficult.  If all clusters have at least one cell that "looks bad" you have 3 options.
+1. Recluster the data to produce more clusters with fewer cells per cluster.  This is the preferred option, but requires more work on the users part.
+2. Make the criteria for declaring a cell to be genuinely expressing a gene set less strict.  This seldom works, as usually when a cell is over the threshold, it's over by a lot.  But in some cases tweaking the values `maximumContamination` and/or `pCut` can yield usable results.
+3. Set `clusters=FALSE` to force `estimateNonExpressingCells` to consider each cell independently.  If you are going to do this, it is worth making the criteria for excluding a cell more permissive by decreasing `maximumContamination` as much as is reasonable.
 
 ## Changelog
+
+### v1.0.0
+
+Review of method, with focus on simplification of code.  Functions that were being used to "automate" selection of genes for contamination estimation have been removed as they were being misused.  Clustering is now used to guide selection of cells where a set of genes is not expressed.  Default now set to use global estimation of rho.  A hierarchical bayes routine has been added to share information between cells when the user does use cell specific estimation.  See NOTE for further details.
 
 ### v0.3.0
 

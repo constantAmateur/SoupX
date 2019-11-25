@@ -1,103 +1,127 @@
 #' Calculate the contamination fraction
 #'
-#' This function calculates the contamination fraction using the markers provided in groups of cells.  A list containing genes that can be expected to be non-expressed in at least one cell must be given.  That is, this list contains sets of genes (e.g. Haemoglobin genes) that can be assumed to be completely absent from certain cells.  For example, haemoglobin genes should not be expressed in anything that is not a red blood cell.  The contamination fraction is then calculated using these genes in groups of cells.
+#' This function computes the contamination fraction using two user-provided bits of information.  Firstly, a list of sets of genes that can be biologically assumed to be abscent in at least some cells in your data set.  For example, these might be haemoglobin genes or immunoglobulin genes, which should not be expressed outside of erythroyctes and antibody producing cells respectively.
 #'
-#' As well as sets of non expressed genes, the user must indicate which cells these genes are non-expressed in.  Continuing with the haemoglobin gene example, this would mean the user must indicate which cells contain red blood cells.  This information is given by the parameter \code{useToEst} which should be a boolean matrix with columns representing cells in toc and rows representing groups of genes defined in \code{nonExpressedGeneList}.  If this is set to NULL, the code will attempt to estimate which cells truly express each set of genes in \code{nonExpressedGeneList} based on the method given in \code{cellExpressionMethod}.
+#' Secondly, this function needs to know which cells definitely do not express the gene sets described above.  Continuing with the haemoglobin example, which are the erythrocytes that are producing haemoglobin mRNAs and which are non-erythrocytes that we can safely assume produce no such genes.  The assumption made is any expression from a gene set in cell marked as a "non-expressor" for that gene set, must be derived from the soup.  Therefore, the level of contamination present can be estimated from the amount of expression of these genes seen in these cells.
 #'
-#' Unless a large list of non expressed genes can be given, there is usually insufficient power to estimate the contamination fraction separately for each cell.  Therefore, the user should supply a vector to \code{cellGroups} that can be used to group together cells when estimating the contamination fraction.  If set to NULL, the code will group together cells with a similar number of total UMIs in groups such that the expected number of soup counts in each group is roughly equal to \code{tgtSoupCntsPerGroup}.
+#' Most often, the genesets are user supplied based on your knowledge of the experiment and the cells in which they are genuinely expressed is estimated using \code{\link{estimateNonExpressingCells}}.  However, they can also be supplied directly if other information is available.
 #'
-#' The different methods to determine which cells to exclude which genes for are:
-#'   pCut - Exclude any cell where we can reject the null hypothesis (Poisson test) that rho<=1 for a set of genes at the \code{exCut} level.
-#'   thresh - Exclude any cell for which the estimate for rho exceeds \code{exCut}.
+#' Usually, there is very little variation in the contamination fraction within a channel and very little power to detect the contamination accurately at a single cell level.  As such, the default mode of operation simply estimates one value of the contamination fraction that is applied to all cells in a channel.  However, to allow for circumstances where there is good power to detect fine grained contamination differences, a cell-specific estimation procedure can be invoked by setting \code{cellSpecificEstimates=TRUE}.
+#'
+#' The global model fits a simple Poisson glm to the aggregated count data across all cells.  The cell-specific model uses heirarchical Bayes estimation using STAN to share information between cells.  Note that this takes much longer and should only be used if you have a convincing reason.  In the most cases, a global estimate will do a good job.
+#'
+#' Finally, note that if you are not able to find a reliable set of genes to use for contamination estimation, or you do not trust the values produced, the contimantion fraction can be manually set by the user using \code{\link{setContaminationFraction}}.
 #'
 #' @export 
-#' @param sc A SoupChannel or SoupChannelList object.  If a SoupChannelList object, channelName must be given and must be the name of a channel.
-#' @param channelName The name of a channel to use if \code{sc} is a SoupChannelList object.
+#' @param sc A SoupChannel object.
 #' @param nonExpressedGeneList A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).
-#' @param useToEst A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  If NULL, this is estimated from the data (see details).
-#' @param cellGroups A vector indicating which cells to group together when estimating rho (see details).
-#' @param tgtSoupCntsPerGroup When automatically constructing groups, ensure that each group has roughly this many expected soup counts.
-#' @param ... Extra parameters passed to \code{\link{identifyExpressingCells}}.
-#' @return A modified version of \code{sc} with the entry \code{rhoGrouped} containing estimates of the contamination fraction for different groupings.  If \code{sc} is a SoupChannelList object the returned object has the channel named \code{channelName} modified to include the estimates of rho.
-calculateContaminationFraction = function(sc,channelName,nonExpressedGeneList,useToEst=NULL,cellGroups=NULL,tgtSoupCntsPerGroup=1000,...){
-  if(is(sc,'SoupChannelList')){
-    if(!(channelName %in% names(sc$channels)))
-      stop("sc is a SoupChannelList object, but channelName is not the name of a channel within this object")
-    sc$channels[[channelName]] = calculateContaminationFraction(sc$channels[[channelName]],nonExpressedGeneList=nonExpressedGeneList,useToEst=useToEst,cellGroups=cellGroups,tgtSoupCntsPerGroup=tgtSoupCntsPerGroup,...)
-    return(sc)
-  }else if(!is(sc,'SoupChannel')){
-    stop("sc must be a SoupChannel or SoupChannelList object")
+#' @param useToEst A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.
+#' @param verbose Print best estimate.
+#' @param cellSpecificEstimates Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.
+#' @param stanParams Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.
+#' @return A modified version of \code{sc} with estimates of the contamination (rho) added to the metaData table.
+#' @importFrom stats coef confint glm poisson quantile
+calculateContaminationFraction = function(sc,nonExpressedGeneList,useToEst,verbose=TRUE,cellSpecificEstimates=FALSE,stanParams=list(chains=1,warmup=8000,iter=24000,cores=1)){
+  if(!is(sc,'SoupChannel')){
+    stop("sc must be a SoupChannel object")
   }
-  #Check that soup has been estimated
-  if(is.null(sc$soupProfile))
-    stop("Must run estimateSoup first.")
-  #Convert nonExpressedGeneList to a list if we just have one set.
+  #Check that you've provided the genes in the right format
   if(!is.list(nonExpressedGeneList))
-    nonExpressedGeneList = list(Markers=nonExpressedGeneList)
-  #Collapse genes in each marker list down into one measure
-  sFracs = do.call(rbind,lapply(nonExpressedGeneList,function(e) estRateLims(sum(sc$soupProfile[e,'cnts']),sum(sc$soupProfile$cnts))))
-  #Do the same with cells, we don't care about other genes for estimation (other than the total counts)
-  dat = do.call(rbind,lapply(nonExpressedGeneList,function(e) colSums(sc$toc[e,,drop=FALSE])))
-  if(is.null(dim(dat)))
-    dat = matrix(dat,nrow=1,dimnames=list(names(nonExpressedGeneList),names(dat)))
-  #For each marker set, work out which cells to exclude
-  if(is.null(useToEst)){
-    useToEst = identifyExpressingCells(sc,'',nonExpressedGeneList,...)
+    stop("nonExpressedGeneList must be a list of sets of genes.  e.g. list(HB = c('HBB','HBA2'))")
+  #Check we can estimate
+  if(sum(useToEst)==0)
+    stop("No cells specified as acceptable for estimation.  useToEst must not be all FALSE")
+  #Construct the data.frame to perform inferance on
+  df = list()
+  for(i in seq_along(nonExpressedGeneList)){
+    tgts = nonExpressedGeneList[[i]]
+    #Get the soup fraction for this set
+    sFrac = sum(sc$soupProfile[tgts,'est'])
+    w = rownames(useToEst)[useToEst[,i]]
+    if(length(w)>0){
+      #Get the counts
+      cnts = as.matrix(sc$toc[tgts,w,drop=FALSE])
+      df[[i]] = data.frame(row.names=NULL,
+                           cells=colnames(cnts),
+                           geneSet=i,
+                           soupFrac = sFrac,
+                           counts=colSums(cnts),
+                           stringsAsFactors=FALSE)
+    }
   }
-  ###############################
-  # Work out how to group cells
-  if(is.null(cellGroups)){
-    o = order(sc$nUMIs)
-    #The expected counts per cell
-    expCnts = colSums(sFracs$est*useToEst)*sc$nUMIs
-    #Split groups so that the expected soup count is respected
-    cellGroups = cut_interval(cumsum(expCnts[o]),length=tgtSoupCntsPerGroup)
-    #Reverse ordering
-    cellGroups = cellGroups[match(seq_along(o),o)]
-    #Drop empty levels
-    cellGroups = factor(as.character(cellGroups))
-    ################################
-    # Deprecated bisection method.
-    #Logic here is we group cells until the upper 95% confidence interval reaches required accuracy
-    #tmp = colSums(sFracs$est*useToEst)
-    ##Do this by recursively bisecting and finding the optimal midpoint
-    #bisectGroup = function(nUMIs,tmp,lvl='',tgt){
-    #  #par must be between 1 and length(nUMIs)-1
-    #  penaltyFun = function(par){
-    #    par = round(par)
-    #    w = (seq_along(tmp)<=par)
-    #    max(qbeta(0.975,1,sum(nUMIs[w]))/sum(tmp[w]),qbeta(0.975,1,sum(nUMIs[!w]))/sum(tmp[!w]))
-    #  }
-    #  #This will usually be faster, but I'm not 100% confident it can be used without issues so let's not use it...
-    #  #fit = optim(ceiling(length(tmp)/2),penaltyFun,lower=1,upper=length(tmp)-1,method='Brent')
-    #  #The exhaustive mode.  Will work, but needlessly slow for large N
-    #  fit = sapply(seq(1,length(tmp)-1),penaltyFun)
-    #  #Create output group mask
-    #  mask = rep(lvl,length(tmp))
-    #  #Test if we're done, if not split and descend a level
-    #  if(min(fit)<tgt){
-    #    w = seq_along(tmp)<=which.min(fit)
-    #    mask[w]= bisectGroup(nUMIs[w],tmp[w],paste0(lvl,'L'),tgt=tgt)
-    #    mask[!w] = bisectGroup(nUMIs[!w],tmp[!w],paste0(lvl,'R'),tgt=tgt)
-    #  }
-    #  return(mask)
-    #}
-    ##Group things at required power threshold within bins of similar nUMIs
-    #grps = bisectGroup(nUMIs[o],tmp[o],'',tgt=tgtAccuracy)
-    #Re-order them in the input way
-    #cellGroups = grps[match(seq_along(o),o)]
-    ##################################
+  df = do.call(rbind,df)
+  df$nUMIs = sc$metaData[df$cells,'nUMIs']
+  df$expSoupCnts = df$nUMIs * df$soupFrac
+  #Make cells a factor, but preserve ordering in sc.  This ensures the the STAN index is the index in sc$metaData
+  df$cells = factor(df$cells,levels=rownames(sc$metaData))
+  #Now decide what model to fit
+  if(cellSpecificEstimates){
+    #It just won't seem to work without this...
+    if(!requireNamespace("rstan", quietly = TRUE))
+      stop("Package \"rstan\" needed for cell specific estimation. Please install it.",call. = FALSE)
+    #This needs to be loaded explicitly or we get rstan errors
+    require('rstan',quietly=TRUE)
+    mod="
+data{
+    int<lower=1> N;
+    int<lower=1> N_cells;
+    int counts[N];
+    int cells[N];
+    real expSoupCnts[N];
+}
+parameters{
+    real rho;
+    real dist_mean;
+    real<lower=0> dist_sd;
+    vector[N_cells] rho_cells;
+}
+model{
+    vector[N] mu;
+    dist_mean ~ normal(0,0.5);
+    dist_sd ~ normal(0,1);
+    rho_cells ~ normal( dist_mean , dist_sd );
+    rho ~ normal( -4 , 1 );
+    for ( i in 1:N ) {
+        mu[i] = rho + rho_cells[cells[i]] + log(expSoupCnts[i]);
+    }
+    counts ~ poisson_log( mu );
+}
+generated quantities{
+    vector[N] mu;
+    real dev;
+    dev = 0;
+    for ( i in 1:N ) {
+        mu[i] = rho + rho_cells[cells[i]] + log(expSoupCnts[i]);
+    }
+    dev = dev + (-2)*poisson_log_lpmf( counts | mu );
+}"
+    dat = list(N=nrow(df),
+               N_cells = nlevels(df$cells),
+               counts = df$counts,
+               cells = as.numeric(df$cells),
+               nUMIs = df$nUMIs,
+               expSoupCnts = df$expSoupCnts
+               )
+    stanParams$model_code = mod
+    stanParams$data = dat
+    sc$fit = do.call(rstan::stan,stanParams)
+    #Match the cells
+    ee = rstan::extract(sc$fit)
+    #Construct cell specific estimates
+    ee = as.numeric(ee$rho) + as.matrix(ee$rho_cells)
+    sc$metaData$rho = exp(colMeans(ee))
+    sc$metaData$rhoLow = exp(apply(ee,2,quantile,0.025))
+    sc$metaData$rhoHigh = exp(apply(ee,2,quantile,0.975))
+  }else{
+    #Fit Poisson GLM with log-link to get global rho
+    sc$fit = glm(counts ~ 1,family=poisson(),offset=log(expSoupCnts),data=df)
+    #Finally, add it to the meta-data
+    sc$metaData$rho = exp(coef(sc$fit))
+    tmp=suppressMessages(confint(sc$fit))
+    sc$metaData$rhoLow = exp(tmp[1])
+    sc$metaData$rhoHigh = exp(tmp[2])
+    if(verbose)
+      message(sprintf("Estimated global contamination fraction of %0.2f%%",100*exp(coef(sc$fit)))) 
   }
-  ##############
-  # Estimation
-  obsSoupCnts = estRateLims(colSums(dat*useToEst),sc$nUMIs)*sc$nUMIs
-  expSoupCnts = colSums(sFracs$est*useToEst)*sc$nUMIs
-  #Global estimate
-  globRho = estGrouped(obsSoupCnts$est,expSoupCnts,sc$nUMIs,rep('Global',length(sc$nUMIs)))
-  if('Global' %in% cellGroups)
-    stop('Cell grouping named "Global" is reserved.  Please rename cell group.')
-  # calculate rho in groups
-  groupRhos = estGrouped(obsSoupCnts$est,expSoupCnts,sc$nUMIs,cellGroups)
-  sc$rhoGrouped = (rbind(globRho,groupRhos))
   return(sc)
 }

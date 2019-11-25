@@ -4,30 +4,27 @@
 \alias{plotMarkerDistribution}
 \title{Plots the distribution of the observed to expected expression for marker genes}
 \usage{
-plotMarkerDistribution(sc, channelName, nonExpressedGeneList,
-  maxCells = 150, minRho = 1, qCut = 0.05)
+plotMarkerDistribution(sc, nonExpressedGeneList, maxCells = 150, ...)
 }
 \arguments{
-\item{sc}{A SoupChannel or SoupChannelList object.}
+\item{sc}{A SoupChannel object.}
 
-\item{channelName}{The name of the channel to use if \code{sc} is a \code{SoupChannelList}}
-
-\item{nonExpressedGeneList}{Which genes to use to estimate soup (see \code{\link{calculateContaminationFraction}}).  Can also be a vector of gene names, in which case each gene is treated as a separate gene set.}
+\item{nonExpressedGeneList}{Which sets of genes to use to estimate soup (see \code{\link{calculateContaminationFraction}}).}
 
 \item{maxCells}{Randomly plot only this many cells to prevent over-crowding.}
 
-\item{minRho}{A statistical test is performed to identify all those cells with more expression than would be possible from the soup alone.  This is done by testing against a null hypothesis of all expression coming from the soup, with the soup contamination fraction being less than or equal to \code{minRho}.}
-
-\item{qCut}{The FDR cut-off for the hypothesis test described above.}
+\item{...}{Extra parameters passed to \code{\link{estimateNonExpressingCells}}.}
 }
 \value{
 A ggplot2 object containing the plot.
 }
 \description{
-If each cell were made up purely of background reads, the expression fraction would equal that of the soup.  This plot compares this expectation of pure background to the observed expression fraction in each cell, for each of the groups of genes in \code{nonExpressedGeneList}.  For each group of genes, the distribution of this ratio is plotted across all cells.  A value significantly greater than 1 (0 on log scale) can only be obtained if some of the genes in each group are genuinely expressed by the cell.
+If each cell were made up purely of background reads, the expression fraction would equal that of the soup.  This plot compares this expectation of pure background to the observed expression fraction in each cell, for each of the groups of genes in \code{nonExpressedGeneList}.  For each group of genes, the distribution of this ratio is plotted across all cells.  A value significantly greater than 1 (0 on log scale) can only be obtained if some of the genes in each group are genuinely expressed by the cell.  That is, the assumption that the cell is pure background does not hold for that gene.
 }
 \details{
 This plot is a useful diagnostic for the assumption that a list of genes is non-expressed in most cell types.  For non-expressed cells, the ratio should cluster around the contamination fraction, while for expressed cells it should be elevated.  The most useful non-expressed gene sets are those for which the genes are either strongly expressed, or not expressed at all.  Such groups of genes will show up in this plot as a bimodal distribution, with one mode containing the cells that do not express these genes around the contamination fraction for this channel and another around a value at some value equal to or greater than 0 (1 on non-log scale) for the expressed cells.
 
-The red line shows the global estimate of rho for each group of markers.  This is usually lower than the low mode of the distribution as there will typically be a non-negligible number of cells with 0 observed counts (and hence -infinity log ratio).
+The red line shows the global estimate of the contamination for each group of markers.  This is usually lower than the low mode of the distribution as there will typically be a non-negligible number of cells with 0 observed counts (and hence -infinity log ratio).
+
+If nonExpressedGeneList is missing, this function will plot the distribution for the most highly expressed genes in the soup, excluding those whose distribution makes them unlikely to be useful. This is meant only as a heuristic, which can hopefully provide some inspiration as to a class of genes to use to estimation the contamination for your experiment.  It is **NOT** meant to be used blindly or algorithmically.  That is, do not feed this list of genes into \code{\link{calculateContaminationFraction}} without any manual consideration or filtering as this *will over-estimate your contamination* (sometime by a large amount).  For this reason, these gene names are not returned by the function.
 }

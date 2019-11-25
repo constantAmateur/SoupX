@@ -4,20 +4,25 @@
 \alias{plotMarkerMap}
 \title{Plot ratio of observed to expected counts on reduced dimension map}
 \usage{
-plotMarkerMap(scl, geneSet, DR, ratLims = c(-2, 2))
+plotMarkerMap(sc, geneSet, DR, ratLims = c(-2, 2), FDR = 0.05,
+  useToEst = NULL)
 }
 \arguments{
-\item{scl}{SoupChannelList object.}
+\item{sc}{SoupChannel object.}
 
 \item{geneSet}{A vector with the names of the genes to aggregate and plot evidence for.}
 
-\item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>___<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.}
+\item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>_<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.  Try and fetch automatically if missing.}
 
 \item{ratLims}{Truncate log ratios at these values.}
+
+\item{FDR}{False Discovery Rate for statistical test of enrichment over background.}
+
+\item{useToEst}{A vector (usually obtained from \code{\link{estimateNonExpressingCells}}), that will be used to mark cells instead of the usual Poisson test.}
 }
 \value{
 A ggplot2 containing the plot.
 }
 \description{
-Given some reduced dimensional representation of the data (such as UMAP or tSNE) that has been calculated however you would like, this provides a way to visualise how likely a set of genes are to be soup derived on that map.  That is, given a set of genes, this function calculates how many counts would be expected if that droplet were nothing but soup and compares that to the observed count.  This is done via a log2 ratio of the two values.  A Poisson test is performed and points that have a statistically significant enrichment over the background (at 1% FDR) are marked.
+Given some reduced dimensional representation of the data (such as UMAP or tSNE) that has been calculated however you would like, this provides a way to visualise how likely a set of genes are to be soup derived on that map.  That is, given a set of genes, this function calculates how many counts would be expected if that droplet were nothing but soup and compares that to the observed count.  This is done via a log2 ratio of the two values.  A Poisson test is performed and points that have a statistically significant enrichment over the background (at 5% FDR) are marked.
 }

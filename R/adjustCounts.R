@@ -1,114 +1,117 @@
-#' Adjust counts to remove soup
+#' Remove background contamination from cell expression profile
 #'
-#' Explicitly drop counts from the count matrix in order of most likely to be soup to least likely until we have removed as many counts as we expect there to be soup molecules in each cell.  The actual removal criteria is to calculate the probability of each count being from the soup in each cell, pMol, and the probability of removing another soup molecule from this cell, pSoup, and keep sequentially removing counts until pSoup*pMol<pCut.  That is, pSoup makes sure we don't throw out many more than we expect to be present in each cell and pMol makes sure we don't throw out any molecule that is unlikely to be soup.
+#' After the level of background contamination has been estimated or specified for a channel, calculate the resulting corrected count matrix with background contamination removed.  
+#'
+#' This essentially subtracts off the mean expected background counts for each gene, then redistributes any "unused" counts.  A count is unused if its subtraction has no effect.  For example, subtracting a count from a gene that has zero counts to begin with.
+#'
+#' If \code{dropWholeCountsOnly=TRUE} then an aggressive alternative strategy is used.  **This is primarily kept for historical reasons and is not recommended.**  For each gene in each cell, this strategy either does nothing, or sets the counts to 0.  This is very effective at removing the smattering of low-level contamination, but leaves any gene that has a contribution from both background and the cell itself unchanged.  This estimation is done by sorting genes within each cell by their p-value under the null of the expected soup fraction.  So that genes that definitely do have a endogenous contribution are at the end of the list with p=0.  Those genes for which there is poor evidence of endogenous cell expression are removed, until we have removed approximately nUMIs*rho molecules.
+#' 
+#' If \code{roundToInt=TRUE}, this function will round the result to integers.  That is, it will take the floor of the connected value and then round back up with probability equal to the fractional part of the number.
 #'
 #' @export
-#' @param scl A SoupChannel or SoupChannelList object for which rho has been calculated.
-#' @param pCut The threshold for excluding counts.
-#' @param verbose By default, this method prints out the 100 most removed genes by channel.  If this is set to FALSE, these are not printed.
-#' @seealso \code{\link{strainCells}}
-#' @return A modified version of \code{scl} with the corrected count matrix stored in atoc.
+#' @param sc A SoupChannel object.
+#' @param roundToInt Should the resulting matrix be rounded to integers?
+#' @param verbose Should function be verbose?
+#' @param tol Allowed deviation from expected number of soup counts.  Don't change this.
+#' @param dropWholeCountsOnly Don't set this to TRUE unless you know what you're doing.  See details.
+#' @param pCut The p-value cut-off used when \code{dropWholeCountsOnly=TRUE}.
+#' @return A modified version of the table of counts, with background contamination removed.
 #' @importFrom Matrix sparseMatrix
-adjustCounts = function(scl,pCut=0.01,verbose=TRUE){
-  #If we're just doing the one channel...
-  if(is(scl,'SoupChannel')){
-    scl = adjustCounts(SoupChannelList(list(scl)),pCut=pCut,verbose=verbose)
-    sc = scl$channels[[1]]
-    sc$atoc = scl$atoc
-    return(sc)
-  }
-  scl$toc = as(scl$toc,'dgTMatrix')
-  #Construct a global rho vector
-  rhos = unlist(lapply(scl$channels,function(e) e$rhos),use.names=FALSE)
-  names(rhos) = unlist(lapply(scl$channels,function(e) names(e$rhos)),use.names=FALSE)
-  #Should be redundant, but do it anyway
-  rhos = rhos[colnames(scl$toc)]
-  #The fast version.  The logic here is that when we remove a count, the adjustment to the probability is given by:
-  #p_new = 1-sum(dbinom(k,n-1,rho*f_gs)) 
-  # = 1-(1-rho*f_gs)**-1 * sum((1-(k/n))*dbinom(k,n,rho*f_gs))
-  #Which in the limit n>>k and rho*f_gs<<1, which are both usually good assumptions
-  # = 1-sum(dbinom(k,n,rho*f_gs)) = p_old
-  #As such, we should basically be fine to just calculate the probability vectors once and then traverse them until the termination criteria is met.
-  #Which channel is each cell from
-  if(verbose)
-    message("Calculating probability of each gene being soup")
-  cMap = match(gsub('___.*','',colnames(scl$toc)),colnames(scl$soupMatrix))
-  p  = pbinom(scl$toc@x-1,scl$nUMIs[scl$toc@j+1],rhos[scl$toc@j+1]*scl$soupMatrix[cbind(scl$toc@i+1,cMap[scl$toc@j+1])],lower.tail=FALSE)
-  #Order them by cell, then by p
-  o = order(-(scl$toc@j+1),p,decreasing=TRUE)
-  #Get the running total for removal.  Could probably make this faster with some tricks.
-  if(verbose)
-    message("Calculating probability of the next count being soup")
-  s = split(o,scl$toc@j[o]+1)
-  rTot = unlist(lapply(s,function(e) cumsum(scl$toc@x[e])),use.names=FALSE)
-  #Now we need to get the soup probability vector as well.
-  pSoup = pbinom(rTot-scl$toc@x[o]-1,scl$nUMIs[scl$toc@j[o]+1],rhos[scl$toc@j[o]+1],lower.tail=FALSE)
-  if(verbose)
-    message("Filtering table of counts")
-  #Now construct the final probability vector
-  pp = p[o]*pSoup
-  #And we then want to drop anything meeting our termination criteria
-  w = which(pp<pCut)
-  #Keep a list of dropped genes
-  dropped = data.frame(cell=colnames(scl$toc)[scl$toc@j[o[-w]]+1],
-                       gene=rownames(scl$toc)[scl$toc@i[o[-w]]+1],
-                       channel = colnames(scl$soupMatrix)[cMap[scl$toc@j[o[-w]]+1]])
-  if(verbose){
-    for(channel in colnames(scl$soupMatrix)){
-      message(sprintf("Most removed genes for channel %s are:",channel))
-      x = sort(table(dropped$gene[dropped$channel==channel])/sum(colnames(scl$soupMatrix)[cMap]==channel),decreasing=TRUE)
+#' @importFrom stats rbinom
+adjustCounts = function(sc,roundToInt=FALSE,verbose=FALSE,tol=1e-3,dropWholeCountsOnly=FALSE,pCut=0.01){
+  if(!is(sc,'SoupChannel'))
+    stop("sc must be an object of type SoupChannel")
+  if(!'rho' %in% colnames(sc$metaData))
+    stop("Contamination fractions must have already been calculated/set.")
+  if(!dropWholeCountsOnly){
+    #Create the final thing efficiently without making a big matrix
+    out = as(sc$toc,'dgTMatrix')
+    expSoupCnts = sc$metaData$nUMIs * sc$metaData$rho
+    soupFrac = sc$soupProfile$est
+    #Iteratively remove until we've removed the expected number of counts
+    #How many counts should we have left when we're done?
+    tgts = sc$metaData$nUMIs - expSoupCnts
+    #Which genes do we still need to bother trying to remove counts from in which cells
+    toAdjust = seq_along(out@i)
+    if(verbose)
+      message("Adjusting count matrix")
+    while(TRUE){
+      #How many left to do?
+      toDo = colSums(out)-tgts
+      #Get the soup frac correction factors.
+      tmp = rep(1,length(toDo))
+      soupFracSum = sapply(split(soupFrac[out@i[toAdjust]+1],out@j[toAdjust]+1),sum)
+      tmp[as.numeric(names(soupFracSum))]=soupFracSum
+      toDo = toDo/tmp
+      #Do the adjustment
+      out@x[toAdjust] = out@x[toAdjust]-soupFrac[out@i[toAdjust]+1]*toDo[out@j[toAdjust]+1]
+      #Only keep updating those that need it
+      toAdjust = toAdjust[out@x[toAdjust]>0]
+      out@x[out@x<0]=0
+      if(verbose)
+        print(quantile(colSums(out)-tgts))
+      if(max(colSums(out)-tgts)<tol)
+        break
+    }
+    ##This is the clearer but slower version of above
+    #out@x = pmax(0,out@x - soupFrac[out@i+1]*expSoupCnts[out@j+1])
+    #while(max(colSums(out)-tgts)>tol){
+    #  toDo = colSums(out)-tgts
+    #  out@x = pmax(0,out@x - soupFrac[out@i+1]*toDo[out@j+1])
+    #  print(quantile(colSums(out)-tgts))
+    #}
+  }else{
+    #Retain this approach for backwards compatability
+    #Start by calculating the p-value against the null of soup.
+    out = as(sc$toc,'dgTMatrix')
+    if(verbose)
+      message("Calculating probability of each gene being soup")
+    p = pbinom(out@x-1,sc$metaData$nUMIs[out@j+1],sc$soupProfile$est[out@i+1]*sc$metaData$rho[out@j+1],lower.tail=FALSE)
+    #Order them by cell, then by p-value
+    o = order(-(out@j+1),p,decreasing=TRUE)
+    #Get the running total for removal.  Could probably make this faster with some tricks.
+    if(verbose)
+      message("Calculating probability of the next count being soup")
+    s = split(o,out@j[o]+1)
+    rTot = unlist(lapply(s,function(e) cumsum(out@x[e])),use.names=FALSE)
+    #Now we need to get the soup probability vector as well.
+    pSoup = pbinom(rTot-out@x[o]-1,sc$metaData$nUMIs[out@j[o]+1],sc$metaData$rho[out@j[o]+1],lower.tail=FALSE)
+    if(verbose)
+      message("Filtering table of counts")
+    #Now construct the final probability vector
+    pp = p[o]*pSoup
+    #And we then want to drop anything meeting our termination criteria
+    w = which(pp<pCut)
+    #Keep a list of dropped genes
+    dropped = data.frame(cell=colnames(out)[out@j[o[-w]]+1],
+                         gene=rownames(out)[out@i[o[-w]]+1],
+                         cnt = out@x[o[-w]])
+    if(verbose){
+      message(sprintf("Most removed genes are:"))
+      x = sort(table(dropped$gene)/ncol(out),decreasing=TRUE)
       print(x[seq_len(min(length(x),100))])
     }
+    #Construct the corrected count matrix
+    out = sparseMatrix(i=out@i[o[w]]+1,
+                       j=out@j[o[w]]+1,
+                       x=out@x[o[w]],
+                       dims=dim(out),
+                       dimnames=dimnames(out),
+                       giveCsparse=FALSE)
   }
-  #Construct the corrected count matrix
-  scl$atoc = sparseMatrix(i=scl$toc@i[o[w]]+1,j=scl$toc@j[o[w]]+1,x=scl$toc@x[o[w]],dims=dim(scl$toc),dimnames = dimnames(scl$toc))
-  return(scl)
-  #repeat{
-  #  message('Calculating probabilities')
-  #  #Calculate everyone's probability at once
-  #  p = pbinom(toc@x-1,nLeft[w[toc@j+1]],rhos[w[toc@j+1]]*sc$soupProfile$est[toc@i+1],lower.tail=FALSE)
-  #  message('Getting best')
-  #  o = order(toc@j+1,p,decreasing=TRUE)
-  #  m = !duplicated((toc@j+1)[o])
-  #  #Rather than do it a million times
-  #  m = o[m]
-  #  #Get the max probability by cell
-  #  pMax = p[m]
-  #  #And which gene it is
-  #  gMax = (toc@i+1)[m]
-  #  #And how many counts it is. Cheat a little here.  Because if we remove one count, it's almost always favourable to remove all the counts (as p increases hugely with each removal), just remove them all in one go.
-  #  xMax = toc@x[m]
-  #  #How likely are we to have another soup molecule for the remaining cells
-  #  pSoup = pbinom(nCnts[w]-1,sc$nUMIs[w],rhos[w],lower.tail=FALSE)
-  #  message('Updating counters')
-  #  #And set the counts we just removed to zero
-  #  toc@i = toc@i[-m]
-  #  toc@j = toc@j[-m]
-  #  toc@x = toc@x[-m]
-  #  #Have we finished any of them?
-  #  toDrop = which(pMax*pSoup<pCut)
-  #  #Check for termination criteria
-  #  if(length(toDrop)==length(w))
-  #    break
-  #  if(length(toDrop)>0){
-  #    toc = toc[,-toDrop]
-  #    w = w[-toDrop]
-  #    pMax = pMax[-toDrop]
-  #    gMax = gMax[-toDrop]
-  #    xMax = xMax[-toDrop]
-  #    pSoup = pSoup[-toDrop]
-  #  }
-  #  #Store the newly dropped ones
-  #  cnts$i = c(cnts$i,gMax)
-  #  cnts$j = c(cnts$j,w)
-  #  cnts$x = c(cnts$x,xMax)
-  #  #And update counters
-  #  nCnts[w] = nCnts[w] + xMax
-  #  nLeft[w] = nLeft[w] - xMax
-  #  print(toDrop)
-  #  print(quantile(nLeft))
-  #  print(quantile(nCnts))
-  #  print(quantile(rhos*sc$nUMIs-nCnts))
-  #  print(quantile((pMax*pSoup)))
-  #}
+  #Do stochastic rounding to integers if needed
+  if(roundToInt){
+    if(verbose)
+      message("Rounding to integers.")
+    #Round to integer below, then probabilistically bump back up
+    out@x = floor(out@x)+rbinom(length(out@x),1,out@x-floor(out@x))
+  }
+  #Fix the object internals
+  w = which(out@x>0)
+  out = sparseMatrix(i=out@i[w]+1,
+                     j=out@j[w]+1,
+                     x=out@x[w],
+                     dims=dim(out),
+                     dimnames=dimnames(out))
+  return(out)
 }

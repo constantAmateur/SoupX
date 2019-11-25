@@ -4,7 +4,7 @@
 \alias{quickMarkers}
 \title{Gets top N markers for each cluster}
 \usage{
-quickMarkers(toc, clusters, N = 10, expressCut = 0)
+quickMarkers(toc, clusters, N = 10, FDR = 0.01, expressCut = 0)
 }
 \arguments{
 \item{toc}{Table of counts.  Must be a sparse matrix.}
@@ -13,13 +13,15 @@ quickMarkers(toc, clusters, N = 10, expressCut = 0)
 
 \item{N}{Number of marker genes to return per cluster.}
 
+\item{FDR}{False discover rate to use.}
+
 \item{expressCut}{Value above which a gene is considered expressed.}
 }
 \value{
 data.frame with top N markers (or all that pass the hypergeometric test) and their statistics for each cluster.
 }
 \description{
-Uses tf-idf ordering to get the top N markers of each cluster.  For each cluster, either the top N or all genes passing the hypergeometric test with an FDR of 0.01 are returned.
+Uses tf-idf ordering to get the top N markers of each cluster.  For each cluster, either the top N or all genes passing the hypergeometric test with the FDR specified.
 }
 \details{
 Term Frequency - Inverse Document Frequency is used in natural language processing to identify terms specific to documents.  This function uses the same idea to order genes within a group by how predictive of that group they are.  The main advantage of this is that it is extremely fast and gives reasonable results.

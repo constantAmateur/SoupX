@@ -12,7 +12,10 @@ estimateSoup = function(sc,soupRange=c(0,10),keepDroplets=FALSE){
     stop("sc must be a SoupChannel object.")
   #Estimate the soup 
   w = which(sc$nDropUMIs > soupRange[1] & sc$nDropUMIs < soupRange[2])
-  sc$soupProfile = estRateLims(rowSums(sc$tod[,w,drop=FALSE]),sum(sc$tod[,w]))
+  sc$soupProfile = data.frame(row.names=rownames(sc$tod),
+                              est = rowSums(sc$tod[,w,drop=FALSE])/sum(sc$tod[,w]),
+                              counts = rowSums(sc$tod[,w,drop=FALSE]))
+  #Saves a lot of space if we can drop the droplets now we're done with them
   if(!keepDroplets)
     sc$tod=NULL
   return(sc)
