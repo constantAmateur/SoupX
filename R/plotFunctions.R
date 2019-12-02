@@ -208,6 +208,9 @@ plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('change','binary
       zLims=c(0,1)
     }
     df = df[order(!is.na(df$relChange)),]
+    #Truncate to prevent -Inf -> NA coloured dots
+    df$relChange[which(df$relChange<zLims[0])] = zLims[0]
+    df$relChange[which(df$relChange>zLims[1])] = zLims[1]
     gg = ggplot(df,aes(RD1,RD2)) +
       geom_point(aes(col=relChange),size=0.5) +
       xlab('ReducedDim1') +
