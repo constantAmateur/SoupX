@@ -18,6 +18,12 @@ The package can be installed by running
 devtools::install_github("constantAmateur/SoupX")
 ```
 
+If you encounter errors saying `multtest` is unavalibale, please install this manually from bioconductor with:
+
+```R
+BiocManager::install('multtest')
+```
+
 ## Documentation
 
 The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1101/303727).  
