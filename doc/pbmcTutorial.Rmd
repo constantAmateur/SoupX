@@ -1,0 +1,384 @@
+---
+title: "SoupX PBMC Demonstration"
+author: "Matthew Daniel Young"
+date: "`r Sys.Date()`"
+fig_width: 8
+fig_height: 6
+output: 
+  pdf_document: default
+  html_document: default
+vignette: >
+  %\VignetteIndexEntry{PBMC Demonstration}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global_options, include=FALSE}
+library(knitr)
+opts_chunk$set(tidy=TRUE)
+```
+
+# Introduction
+
+Before we get started with the specifics of example data sets and using the R package, it is worth understanding at a broad level what the problem this package aims to solve is and how it goes about doing it.  Of course, the best way of doing this is by [reading the pre-print](https://www.biorxiv.org/content/early/2018/04/20/303727), it's not long I promise.  But if you can't be bothered doing that or just want a refresher, I'll try and recap the main points.
+
+In droplet based, single cell RNA-seq experiments, there is always a certain amount of background mRNAs present in the dilution that gets distributed into the droplets with cells and sequenced along with them.  The net effect of this is to produce a background contamination that represents expression not from the cell contained within a droplet, but the solution that contained the cells.
+
+This collection of cell free mRNAs floating in the input solution (henceforth referred to as "the soup") is created from cells in the input solution being lysed.  Because of this, the soup looks different for each input solution and strongly resembles the expression pattern obtained by summing all the individual cells.
+
+The aim of this package is to provide a way to estimate the composition of this soup, what fraction of UMIs are derived from the soup in each droplet and produce a corrected count table with the soup based expression removed.
+
+The method to do this consists of three parts:
+
+1. Calculate the profile of the soup.
+2. Estimate the cell specific contamination fraction.
+3. Infer a corrected expression matrix. 
+
+Generally, steps 1 and 3 are pretty simple and robust. The part of using this method that requires the most care and thought is step 2, i.e., working out how much background is present in each cell. This is parametrised as rho in the code, with rho=0 meaning no contamination and rho=1 meaning 100% of UMIs in a droplet are soup.
+
+In later revisions of the method, clustering information is utilised to make steps 2 and 3 more robust.  It is strongly recommended that you provide some clustering information to SoupX.  If you are using 10X data mapped with cellranger, the default clustering produced by cellranger is automatically loaded and used.
+
+## Genes to estimate the contamination fraction
+
+To estimate the contamination fraction, we need a set of genes that we know (through prior biological knowledge) are not expressed in a set of cells, so by measuring how much expression we observe we can infer the contamination fraction. That is, we need a set of genes that we know are not expressed by cells of a certain type, so that in these cells the only source of expression is the soup.  The difficulty is in identifying these sets of genes and the cells in which they can be assumed to be not expressed.
+
+Note that the purpose of this set of genes is to estimate the contamination fraction and nothing else.  These genes play no special role in the actual removal of background associated counts.  They are categorically **not** a list of genes to be removed or anything of that sort.
+
+Furthermore, if no good set of genes can be provided, it is reasonable to consider setting the contamination fraction manually to something and seeing how your results are effected.  A contamination rate of around 0.1 is appropriate for many datasets, but of course every experiment is different.
+
+To make this concrete, let us consider an example.  The genes HBB,HBA2 are both haemoglobin genes and so should only be expressed in red blood cells and nowhere else.  IGKC is an antibody gene produced only by B cells.  Suppose we're estimating the contamination then using two sets of genes: HB genes (HBB and HBA2) and IG genes (IGKC).  Let's now look at what happens in a few hypothetical cells:
+
+Cell 1 - Is a red blood cell so expresses HBB and HBA2, but should not express IGKC. For this cell we want to use IGKC to estimate the contamination fraction but not HBB,HBA2.
+
+Cell 2 - Is a B-Cell so should express IGKC, but not HBB or HBA2. For this cell we want to use HBB and HBA2 to estimate the contamination fraction, but not IGKC.
+
+Cell 3 - Is an endothelial cell, so should not express any of HBB,HBA2 or IGKC. So we want to use all three to estimate the contamination fraction.
+
+Basically we are trying to identify in each cell, a set of genes we know the cell does not express so we can estimate the contamination fraction using the expression we do see.
+
+Now obviously the method doesn't know anything about the biology and we haven't told it what's a B cell, a RBC or anything else. There is nothing stopping you supplying that information if you do have it and that will of course give the best results.
+
+But absent this information, the trick is to use the expression level of these genes in each cell to identify when not to use a gene to estimate the contamination fraction.  This is why the best genes for estimating the contamination fraction are those that are highly expressed in the cells that do use them (like HB or IG genes).  Then we can be confident that observing a low level of expression of a set of genes in a cell is due to background contamination, not a low level of mRNA production by the cell.
+
+Given a set of genes that we suspect may be useful, the function `plotMarkerDistribution` can be used to visualise how this gene's expression is distributed across cells. To continue our example:
+
+Cell 1 - The measured expression of HBB and HBA2 is 10 times what we'd expect if the droplet was filled with soup, so the method will not use either of these genes to calculate rho. On the other hand IGKC is about .05 times the value we'd get for pure soup, so that is used.
+
+Cell 2 - HBB/HBA2 have values around .05 times the soup. IGKC is off the charts at 100 times what we'd expect in the soup. So the method concludes that this cell is expressing IGKC and so uses only HBB/HBA2 to estimate rho.
+
+Cell 3 - All three are at around .05, so all are used to estimate rho.
+
+To prevent accidentally including cells that genuinely express one of the estimation genes, SoupX will by default exclude any cluster where even one gene has evidence that it expresses a gene.  So in the example above, SoupX would not use HB genes to estimate the contamination rate in Cell 1, or any of the cells belonging to the same cluster as Cell 1.  This very conservative behaviour is to prevent over-estimation of the contamination fraction.
+
+Clustering is beyond the scope of SoupX, so must be supplied by the user.  For 10X data mapped using cellranger, SoupX will automatically pull the graph based clustering produced by cellranger and use that by default.
+
+As indicated above, to get a more accurate estimate, groups with a similar biological function are grouped together so they're either used or excluded as a group. This is why the parameter nonExpressedGeneList is given as a list. Each entry in the list is a group of genes that are grouped biologically. So in our example we would set it like:
+
+```{r genes1}
+nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC'))
+```
+
+in this example we'd probably want to include other IG genes and Haemoglobin genes even through they're not particularly highly expressed in general, as they should correlate biologically. That is,
+
+```{r genes2}
+nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC','IGHG1','IGHG3'))
+```
+
+or something similar.
+
+# Getting started
+
+You install this package like any other R package.  The simplest way is to use the `devtools` `install_github` function as follows:
+
+```{r install, eval=FALSE}
+devtools::install_github("constantAmateur/SoupX")
+```
+
+Once installed, you can load the package in the usual way,
+
+```{r load}
+library(SoupX)
+```
+
+# PBMC dataset
+
+Like every other single cell tool out there, we are going to use one of the 10X PBMC data sets to demonstrate how to use this package.  Specifically, we will use this [PBMC dataset](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).  The starting point is to download the [raw](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz) and [filtered](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz) cellranger output and extract them to a folder somewhere as follows.
+
+```{bash download, results="hide",message=FALSE,warning=FALSE,eval=TRUE}
+mkdir SoupX_pbmc4k_demo
+cd SoupX_pbmc4k_demo
+wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz
+wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz
+tar zxf pbmc4k_raw_gene_bc_matrices.tar.gz
+tar zxf pbmc4k_filtered_gene_bc_matrices.tar.gz
+cd ../../../
+```
+
+## Loading the data
+
+SoupX comes with a convenience function for loading 10X data processed using cellranger.  We will use this to get started.
+
+```{r load_data}
+library(SoupX)
+dataDirs = c('SoupX_pbmc4k_demo/')
+sc = load10X(dataDirs)
+```
+
+This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.
+
+## Profiling the soup
+
+Having loaded our data, the first thing to do is to estimate what the expression profile of the soup looks like.  This is actually done for us automatically by the object construction function `SoupChannel` called by `load10X`.  Generally, we'd never really want to explicitly make this call, but just so it's explicit that this is the first part of the method we will show how to do so here.
+
+```{r estimateSoup, eval=FALSE}
+sc = load10X(dataDirs,keepDroplets=TRUE)
+sc = estimateSoup(sc)
+```
+
+Which modifies the `SoupChannel` object to add estimates of the soup expression profile.
+
+Note that we had to reload the `sc` object to do this.  By default, when the soup is estimated the table of droplets `tod` is dropped to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
+
+## Visual sanity checks
+
+It is often the case that really what you want is to get a rough sense of whether the expression of a gene (or group of genes) in a set of cells is derived from the soup or not.  At this stage we already have enough information to do just this.  Before proceeding, we will briefly discuss how to do this.
+
+Say that we are interested in the expression of the gene IGKC, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  Suppose we have used some other method to produce a reduced dimension representation of our data (PCA, tSNE, UMAP or whatever).  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data.  This information is also automatically loaded from the cellranger output if it is present.
+
+The tSNE coordinates for the PBMC data has been included with the package.  For the exact details as to how it was calculated look at `?PBMC_DR`.  Let's load this data
+
+```{r init_dataset}
+data(PBMC_DR)
+```
+
+Now we can quickly visualise which cells express IGKC by extracting the counts for it from the `SoupChannel` object.
+
+```{r plot_IGKC}
+library(ggplot2)
+PBMC_DR$IGKC = sc$toc['IGKC',rownames(PBMC_DR)]
+gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
+  geom_point(aes(colour=IGKC>0))
+plot(gg)
+```
+
+Wow!  We know from prior annotation that the cells in the cluster at the bottom are B-cells so should express IGKC.  But the cluster on the right is a T-cell population.  Taken at face value, we appear to have identified a scattered population of T-cells that are producing antibodies!  Start preparing the nature paper!
+
+Before we get too carried away though, perhaps it's worth checking if the expression of IGKC in these scattered cells is more than we would expect by chance from the soup.  To really answer this properly, we need to know how much contamination is present in each cell, which will be the focus of the next sections.  But we can get a rough idea just by calculating how many counts we would expect for IGKC in each cell, by assuming that cell contained nothing but soup.  The function `soupMarkerMap` allows you to visualise the ratio of observed counts for a gene (or set of genes) to this expectation value.  Let's try it out,
+
+```{r sanity_check}
+gg = plotMarkerMap(sc,'IGKC',PBMC_DR)
+plot(gg)
+```
+
+We pass the function three things: the `SoupChannel` containing information about each channel and it's soup profile, the gene (or set of genes) we are interested in and the reduced dimension co-ordinates of each gene.  SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else (Seurat was used in this case).  To save having to re-specify the dimension reduction for every plot, we can include it in the meta data,
+
+```{r add_DR}
+sc = setDR(sc,PBMC_DR)
+```
+
+Then these coordinates will be automatically used by all plotting functions.  For example,
+
+```{r sanity_check_auto}
+gg = plotMarkerMap(sc,'IGKC')
+plot(gg)
+```
+
+Looking at the resulting plot, we see that the cells in the B-cell cluster have a reddish colour, indicating that they are expressed far more than we would expect by chance, even if the cell was nothing but background.  Our paradigm changing, antibody producing T-cells do not fare so well.  They all have a decidedly bluish hue, indicating that is completely plausible that the expression of IGKC in these cells is due to contamination from the soup.  Those cells that are shown as dots have zero expression for IGKC.
+
+We have made these plots assuming each droplet contains nothing but background contamination, which is obviously not true.  Nevertheless, this can still be a useful quick and easy sanity check to perform.
+
+## Estimating the contamination fraction
+
+The most difficult part of correcting for background contamination is accurately estimating how much contamination is present in each cell.  In order to do this, we need to find a set of genes that we are as certain will not be expressed in each cell.  See the section above on "Soup Specific Genes" for an example which may make this clearer.
+
+It is also worth considering if you really want to accurately estimate the contamination level.  SoupX has been designed to prevent it accidentally removing true expression from the data.  However, in some circumstances it may be preferable to loose some true signal in order to be sure that all contamination is removed.  In such cases it may be preferable to simply set the contamination fraction to some reasonably high value (say 0.2).  This can be done by running
+
+```{r set_rho}
+sc = setContaminationFraction(sc,0.2)
+```
+
+For some experiments, such as solid tissue studies where red cell lysis buffer has been used, it is obvious what genes to use for this purpose.  In the case of bloody solid tissue, haemoglobin genes will be a ubiquitous contaminant and are not actually produced by any cell other than red blood cells in most contexts.  If this is the case, you can skip the next section and proceed straight to estimating contamination.
+
+
+### Picking soup specific genes
+
+However, some times it is not obvious in advance which genes are highly specific to just one population of cells.  This is the case with our PBMC data, which is not a solid tissue biopsy and so it is not clear which gene sets to use to estimate the contamination.  In general it is up to the user to pick sensible genes, but there are a few things that can be done to aid in this selection process.  Firstly, the genes that are the most useful are those expressed most highly in the background.  We can check which genes these are by running:
+
+```{r topSoupGenes}
+head(sc$soupProfile[order(sc$soupProfile$est,decreasing=TRUE),],n=20)
+```
+
+Unfortunately most of the most highly expressed genes in this case are ubiquitously expressed (RPL/RPS genes or mitochondrial genes).  So we need some further criteria to aid our selection process.
+
+The function `plotMarkerDistribution` is used to visualise the distribution of expression (relative to what would be expected were each cell pure background) across all cells in the data set.  When no geneset is provided, the function will try and guess which genes might be useful.  
+
+```{r inferNonExpressed}
+plotMarkerDistribution(sc)
+```
+
+The plot shows the distribution of log10 ratios of observed counts to expected if the cell contained nothing but soup.  A guess at which cells definitely express each gene is made and the background contamination is calculated.  The red line shows the global estimate (i.e., assuming the same contamination fraction for all cells) of the contamination fraction using just that gene.
+
+Note that this is a heuristic set of genes that is intended to help develop your biological intuition.  It absolutely **must not** be used to automatically select a set of genes to estimate the background contamination fraction.  For this reason, the function will not return a list of genes.  **If you select the top N genes from this list and use those to estimate the contamination, you will over-estimate the contamination fraction!**
+
+Note too that the decision of what genes to use to estimate the contamination must be made on a channel by channel basis.  We will find that B-cell specific genes are useful for estimating the contamination in this channel.  If we had another channel with only T-cells, these markers would be of no use.
+
+Looking at this plot, we observe that there are two immunoglobulin genes from the constant region (IGKC and IGLC2) present and they give a consistent estimate of the contamination fraction of around 10% (-1 on the log10 scale).  As we know that it is reasonable to assume that immunoglobulin genes are expressed only in B-cells, we will decide to use their expression in non B-cells to estimate the contamination fraction.
+
+But there's no reason to just use the genes `inferNonExpressedGenes` flagged for us.  So let's define a list of all the constant immunoglobulin genes, 
+
+```{r igGenes}
+igGenes = c('IGHA1','IGHA2','IGHG1','IGHG2','IGHG3','IGHG4','IGHD','IGHE','IGHM',
+            'IGLC1','IGLC2','IGLC3','IGLC4','IGLC5','IGLC6','IGLC7',
+            'IGKC')
+```
+
+it doesn't matter if some of these are not expressed in our data, they will then just not contribute to the estimate.
+
+### Estimating non-expressing cells
+
+Having decided on a set of genes with which to estimate the contamination, we next need to decide which cells genuinely express these genes and should not be used for estimating the intimation, and which do not and should.  This is done as follows,
+
+```{r calculateNullMatrix}
+useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes))
+```
+
+Which produces a matrix indicating which cells (rows) should use which sets of genes (columns) to estimate the contamination.  You will notice that the function returned a warning about cluster information not being provided.  As discussed above, SoupX tries to be conservative and prevents estimation both from cells with high expression of a gene set (igGenes in this case) and any cell that falls in the same cluster.  When no clustering information is given, it cannot do this so defaults to just excluding those cells that are obviously not suitable.  We can visualise which cells have been marked to use for estimation,
+
+```{r visNullMatrix}
+plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
+```
+
+Our Seurat PBMC_DR data also contains clustering information.  Let's see how things change if we provide clustering data.
+
+```{r calcNullMatrixWithClustering}
+useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes),clusters=setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
+plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
+```
+
+As you can see the set of cells to be used for estimation with the igGenes set has decreased.  In this case it makes not much difference, but in general it is better to provide clustering and be conservative.
+
+It is worth noting one final thing about the specification of nonExpressedGeneList.  It seems odd that we have specified `nonExpressedGeneList = list(IG=igGenes)` rather than just `nonExpressedGeneList = igGenes`.  This is because nonExpressedGeneList expects sets of genes that are biologically related and expected to be present or not present as a set (e.g. IG genes, HB genes).
+
+As with the dimension reduction, we can make our lives easier and store the clustering information in the `sc` object.  We will explicitly set the clustering in the rest of this vignette so you can see how it's done, but it is strongly recommended that you save this information in the `sc` object and have it dealt with automatically.  If you are using `load10X` with the normal cellranger output, the cellranger clustering will be loaded automatically.
+
+```{r set_clustering}
+sc = setClusters(sc,PBMC_DR$Cluster)
+```
+
+### Calculating the contamination fraction
+
+At this point all the hard work has been done.  To estimate the contamination fraction you need only pass your set of genes and which cells in which to use those sets of genes to `calculateContaminationFraction`.
+
+```{r calcContamination}
+sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
+```
+
+This function will modify the `metaData` table of `sc` to add a table giving the contamination fraction estimate.
+
+```{r viewCont}
+head(sc$metaData)
+```
+
+In 99% of cases the default values of `calculateContaminationFraction` are what you will want.  However, in rare circumstances where you have lots of good genes to estimate contamination you way want to estimate the contamination not globally (the default), but separately for each cell.  Most of the time there is no point in doing this as the contamination fraction does not vary greatly across a channel.  We can do cell specific contamination estimation as follows,
+
+```{r cellSpecificRho,eval=FALSE}
+sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
+quantile(sc$metaData$rho)
+```
+
+This procedure depends on rstan and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in sc$fit (in both cell dependent and global estimation).
+
+### Manual alternative
+
+If you have some other way of estimating the contamination fraction, want to err on the side of removing more contamination, want to explore how the results depend on this estimate, or don't trust the value returned by the above estimation procedure, it is possible to bypass estimating the contamination fraction and specify rho directly.  This is done by running,
+
+```{r manualRho, eval=FALSE}
+sc = setContaminationFraction(sc,0.1)
+```
+
+to set the contamination fraction to 10% for all cells.
+
+## Correcting expression profile
+
+We have now calculated the contamination fraction for each cell and would like to use this to remove the contamination from the original count matrix.  As with estimating the contamination, this procedure is made much more robust by providing clustering information.  This is because there is much more power to separate true expression from contaminating expression when counts are aggregated into clusters.  Furthermore, the process of redistributing corrected counts from the cluster level to individual cells automatically corrects for variation in the cell specific contamination rate (see the paper for details).
+
+Usually you will have stored clustering information, either by having it automatically loaded by `load10X` or by running `setClusters`.  Here we will assume you have not,
+
+```{r decontaminate}
+out = adjustCounts(sc,clusters = setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
+```
+
+The recommended mode of operation will produce a non-integer (although still sparse) matrix where the original counts have been corrected for background expression.  See the help, code, and paper for details of how this is done.  
+
+You should not change the `method` parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting `roundToInt=TRUE`, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
+
+This process can be quite slow when clustering information is provided.  On multi-core machines, this estimation can be sped up by setting `nCores` to the number of clusters to process in parallel.
+
+### Investigating changes in expression
+
+Before proceeding let's have a look at what this has done.  We can get a sense for what has been the most strongly decreased by looking at the fraction of cells that were non-zero now set to zero after correction.
+
+```{r mostZeroed}
+library(Matrix)
+cntSoggy = rowSums(sc$toc>0)
+cntStrained = rowSums(out>0)
+mostZeroed = tail(sort((cntSoggy-cntStrained)/cntSoggy),n=10)
+mostZeroed
+```
+
+Notice that a number of the genes on this list are highly specific markers of one cell type or group of cells (CD74/HLA-DRA antigen presenting cells, IGKC B-cells) and others came up on our list of potential cell specific genes.  Notice also the presence of the mitochondrial gene MT-ND3.
+
+If on the other hand we focus on genes for which there is a quantative difference,
+
+```{r mostReduced}
+tail(sort(rowSums(sc$toc>out)/rowSums(sc$toc>0)),n=20)
+```
+
+we find genes associated with metabolism and translation.  This is often the case as mitochondrial genes are over represented in the background compared to cells, presumably as a result of the soup being generated from distressed cells.
+
+### Visualising expression distribution
+
+Way back at the start, we did a quick visualisation to look at how the ratio of IGKC expression to pure soup was distributed.  Now that we've corrected our data, we can see how that compares to our corrected data.  The function `plotChangeMap` can help us with this.  By default it plots the fraction of expression in each cell that has been deemed to be soup and removed.
+
+```{r IGKC_change}
+plotChangeMap(sc,out,'IGKC')
+```
+
+which shows us that the expression has been heavily decreased in the areas where it was very surprising to observe it before.  Let's take a look at the expression of some other genes.
+
+```{r change_plots}
+plotChangeMap(sc,out,'LYZ')
+plotChangeMap(sc,out,'CD74')
+plotChangeMap(sc,out,'HLA-DRA')
+plotChangeMap(sc,out,'IL32')
+plotChangeMap(sc,out,'TRAC')
+plotChangeMap(sc,out,'CD3D')
+plotChangeMap(sc,out,'S100A9')
+plotChangeMap(sc,out,'S100A8')
+plotChangeMap(sc,out,'LTB')
+plotChangeMap(sc,out,'NKG7')
+plotChangeMap(sc,out,'GNLY')
+plotChangeMap(sc,out,'CD4')
+plotChangeMap(sc,out,'CD8A')
+```
+
+Clearly the interpretation of which cells are expressing these genes changes quite dramatically when we correct for soup contamination.  I have included plots of CD4 and CD8 to show that genes that are not highly expressed in the soup are essentially unchanged by the soup correction.
+
+The change in pattern will be interesting for many other genes, feel free to explore for yourself.  In general, the changes tend to be largest for genes that are highly expressed but only in a specific context.
+
+## Integrating with downstream tools
+
+Of course, the next thing you'll want to do is to load this corrected expression matrix into some downstream analysis tool and further analyse the data.
+
+The corrected matrix can then be used for any downstream analysis in place of the uncorrected raw matrix. If you are using 10X data and would like to save these final counts out in the same format, you can use the [DropletUtils](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html) write10xCounts function like this,
+
+```{r writeOut}
+DropletUtils:::write10xCounts('./strainedCounts',out)
+```
+
+```{bash cleanup, include=FALSE}
+#Remove the data we downloaded
+rm -rf SoupX_pbmc4k_demo
+```
+
+Note that this vignette depends on external tools (such as `wget`) and so may not build out of the box on some platforms.
