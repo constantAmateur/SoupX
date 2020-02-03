@@ -4,8 +4,7 @@
 \alias{plotMarkerMap}
 \title{Plot ratio of observed to expected counts on reduced dimension map}
 \usage{
-plotMarkerMap(sc, geneSet, DR, ratLims = c(-2, 2), FDR = 0.05,
-  useToEst = NULL)
+plotMarkerMap(sc, geneSet, DR, ratLims = c(-2, 2), FDR = 0.05, useToEst = NULL)
 }
 \arguments{
 \item{sc}{SoupChannel object.}

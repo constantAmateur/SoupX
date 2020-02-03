@@ -4,8 +4,14 @@
 \alias{plotChangeMap}
 \title{Plot maps comparing corrected/raw expression}
 \usage{
-plotChangeMap(sc, cleanedMatrix, geneSet, DR, dataType = c("change",
-  "binary", "counts"), logData = TRUE)
+plotChangeMap(
+  sc,
+  cleanedMatrix,
+  geneSet,
+  DR,
+  dataType = c("soupFrac", "binary", "counts"),
+  logData = FALSE
+)
 }
 \arguments{
 \item{sc}{SoupChannel object.}
@@ -16,7 +22,7 @@ plotChangeMap(sc, cleanedMatrix, geneSet, DR, dataType = c("change",
 
 \item{DR}{A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>_<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.}
 
-\item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, change plots the relative fractional change (i.e., (old-new)/old) for each cell and is the default.}
+\item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, soupFrac plots the fraction of the observed counts that are identified as contamination (i.e., (old-new)/old) for each cell and is the default.}
 
 \item{logData}{Should we log the thing we plot?}
 }
