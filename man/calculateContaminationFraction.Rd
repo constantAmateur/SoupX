@@ -4,9 +4,14 @@
 \alias{calculateContaminationFraction}
 \title{Calculate the contamination fraction}
 \usage{
-calculateContaminationFraction(sc, nonExpressedGeneList, useToEst,
-  verbose = TRUE, cellSpecificEstimates = FALSE,
-  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1))
+calculateContaminationFraction(
+  sc,
+  nonExpressedGeneList,
+  useToEst,
+  verbose = TRUE,
+  cellSpecificEstimates = FALSE,
+  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1)
+)
 }
 \arguments{
 \item{sc}{A SoupChannel object.}

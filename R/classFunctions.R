@@ -46,3 +46,4 @@ SoupChannel = function(tod,toc,metaData=NULL,soupRange=c(0,10),keepDroplets=FALS
 print.SoupChannel = function(x,...) {
   message(sprintf("Channel with %d genes and %d cells",nrow(x$toc),ncol(x$toc)))
 }
+

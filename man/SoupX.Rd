@@ -3,7 +3,6 @@
 \docType{package}
 \name{SoupX}
 \alias{SoupX}
-\alias{SoupX-package}
 \title{SoupX: Profile, quantify and remove ambient RNA expression from droplet based RNA-seq}
 \description{
 This package implements the method described in REF.  First a few notes about nomenclature:

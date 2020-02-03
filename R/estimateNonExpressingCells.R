@@ -8,17 +8,17 @@
 #'
 #' To this end, this function will exclude any cluster of cells in which any cell is deemed to have geunine expression of a gene set.  Clustering of data is beyond the scope of this package, but can be performed by the user.  In the case of 10X data mapped using cellranger and loaded using \code{\link{load10X}}, the cellranger graph based clustering is automatically loaded and used.
 #'
-#' To decide if a cell is genuinely expressing a set of genes, a Poisson test is used.  This tests whether the observed expression is greater than \code{maximumContamination} times the expected number of counts for a set of genes, if the cell were assumed to be derived wholy from the background.  This process can be made less conservative (i.e., excluding fewer cells/clusters) by either decreasing the value of the maximum contamination the user believes is plausible (\code{maximumContamination}) or making the significance threshold for the test more strict (by reducing \code{pCut}).
+#' To decide if a cell is genuinely expressing a set of genes, a Poisson test is used.  This tests whether the observed expression is greater than \code{maximumContamination} times the expected number of counts for a set of genes, if the cell were assumed to be derived wholy from the background.  This process can be made less conservative (i.e., excluding fewer cells/clusters) by either decreasing the value of the maximum contamination the user believes is plausible (\code{maximumContamination}) or making the significance threshold for the test more strict (by reducing \code{FDR}).
 #'
 #' @export
 #' @param sc A SoupChannel object. 
 #' @param nonExpressedGeneList A list containing sets of genes which will be used to estimate the contamination fraction.
 #' @param clusters A named vector indicating how to cluster cells.  Names should be cell IDs, values cluster IDs.  If NULL, we will attempt to load it from sc$metaData$clusters.  If set to FALSE, each cell will be considered individually.
 #' @param maximumContamination The maximum contamination fraction that you would reasonably expect.  The lower this value is set, the more aggressively cells are excluded from use in estimation.
-#' @param pCut A Poisson test is used to identify cells to exclude, this is the p value cut-off to use.  Higher pCut = more aggressive exclusion.
+#' @param FDR A Poisson test is used to identify cells to exclude, this is the false discevore rate to use.  Higher FDR = more aggressive exclusion.
 #' @seealso calculateContaminationFraction plotMarkerMap
 #' @return A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.
-estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maximumContamination=1.0,pCut=0.05){
+estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maximumContamination=1.0,FDR=0.05){
   if(!is(sc,'SoupChannel'))
     stop("sc is not a valid SoupChannel object")
   #Get clusters if they exist, if they don't, set to individual cells
@@ -50,18 +50,19 @@ estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maxi
   #Identify those cells where a gene is definitely expressed
   s = split(names(clusters),clusters)
   clustExp = ppois(cnts-1,exp,lower.tail=FALSE)
+  clustExp = t(apply(clustExp,1,p.adjust,method='BH'))
   clustExp = do.call(rbind,lapply(s,function(e) apply(clustExp[,e,drop=FALSE],1,min)))
-  clustExp = clustExp>=pCut
+  clustExp = clustExp>=FDR
   #Expand it out into a full cell matrix
   clustExp = clustExp[match(clusters,rownames(clustExp)),,drop=FALSE]
   rownames(clustExp) = names(clusters)
   #Check that we actually got som
   if(sum(clustExp)==0){
-    warning("No non-expressing cells identified.  Consider setting clusters=FALSE, increasing maximumContamination and/or pCut.")
+    warning("No non-expressing cells identified.  Consider setting clusters=FALSE, increasing maximumContamination and/or FDR")
   }
   #A small number found
   if(sum(clustExp)>0 && sum(clustExp)<100){
-    warning("Fewer than 100 non-expressing cells identified.  The estimation of the contamination fraction may be inaccurate.  Consider setting clusters=FALSE, increasing maximumContamination and/or pCut.")
+    warning("Fewer than 100 non-expressing cells identified.  The estimation of the contamination fraction may be inaccurate.  Consider setting clusters=FALSE, increasing maximumContamination and/or FDR")
   }
   return(clustExp)
 }

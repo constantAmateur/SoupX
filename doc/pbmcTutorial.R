@@ -37,6 +37,16 @@ plot(gg)
 gg = plotMarkerMap(sc,'IGKC',PBMC_DR)
 plot(gg)
 
+## ----add_DR--------------------------------------------------------------
+sc = setDR(sc,PBMC_DR)
+
+## ----sanity_check_auto---------------------------------------------------
+gg = plotMarkerMap(sc,'IGKC')
+plot(gg)
+
+## ----set_rho-------------------------------------------------------------
+sc = setContaminationFraction(sc,0.2)
+
 ## ----topSoupGenes--------------------------------------------------------
 head(sc$soupProfile[order(sc$soupProfile$est,decreasing=TRUE),],n=20)
 
@@ -58,6 +68,9 @@ plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes),clusters=setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
 plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 
+## ----set_clustering------------------------------------------------------
+sc = setClusters(sc,PBMC_DR$Cluster)
+
 ## ----calcContamination---------------------------------------------------
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 
@@ -72,7 +85,7 @@ head(sc$metaData)
 #  sc = setContaminationFraction(sc,0.1)
 
 ## ----decontaminate-------------------------------------------------------
-out = adjustCounts(sc)
+out = adjustCounts(sc,clusters = setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
 
 ## ----mostZeroed----------------------------------------------------------
 library(Matrix)
@@ -85,63 +98,23 @@ mostZeroed
 tail(sort(rowSums(sc$toc>out)/rowSums(sc$toc>0)),n=20)
 
 ## ----IGKC_change---------------------------------------------------------
-plotChangeMap(sc,out,'IGKC',PBMC_DR)
+plotChangeMap(sc,out,'IGKC')
 
 ## ----change_plots--------------------------------------------------------
-plotChangeMap(sc,out,'LYZ',PBMC_DR)
-plotChangeMap(sc,out,'CD74',PBMC_DR)
-plotChangeMap(sc,out,'HLA-DRA',PBMC_DR)
-plotChangeMap(sc,out,'IL32',PBMC_DR)
-plotChangeMap(sc,out,'TRAC',PBMC_DR)
-plotChangeMap(sc,out,'CD3D',PBMC_DR)
-plotChangeMap(sc,out,'S100A9',PBMC_DR)
-plotChangeMap(sc,out,'S100A8',PBMC_DR)
-plotChangeMap(sc,out,'LTB',PBMC_DR)
-plotChangeMap(sc,out,'NKG7',PBMC_DR)
-plotChangeMap(sc,out,'GNLY',PBMC_DR)
-plotChangeMap(sc,out,'CD4',PBMC_DR)
-plotChangeMap(sc,out,'CD8A',PBMC_DR)
+plotChangeMap(sc,out,'LYZ')
+plotChangeMap(sc,out,'CD74')
+plotChangeMap(sc,out,'HLA-DRA')
+plotChangeMap(sc,out,'IL32')
+plotChangeMap(sc,out,'TRAC')
+plotChangeMap(sc,out,'CD3D')
+plotChangeMap(sc,out,'S100A9')
+plotChangeMap(sc,out,'S100A8')
+plotChangeMap(sc,out,'LTB')
+plotChangeMap(sc,out,'NKG7')
+plotChangeMap(sc,out,'GNLY')
+plotChangeMap(sc,out,'CD4')
+plotChangeMap(sc,out,'CD8A')
 
 ## ----writeOut------------------------------------------------------------
 DropletUtils:::write10xCounts('./strainedCounts',out)
-
-## ----documentation_figures, include=FALSE--------------------------------
-#Some extra bits of code for making example plots
-#Basic annotation
-cMap = c('0'='MNP',
-         '1'='CD8 T-Cell',
-         '2'='CD8 T-Cell',
-         '3'='CD4 T-Cell',
-         '4'='B-Cell',
-         '5'='CD4 T-Cell',
-         '6'='NK',
-         '7'='B-Cell',
-         '8'='NK',
-         '9'='MNP',
-         '10'='MNP',
-         '11'='?')
-PBMC_DR$Annotation = factor(cMap[as.character(PBMC_DR$Cluster)])
-mids = lapply(split(PBMC_DR[,1:2],PBMC_DR$Annotation),apply,2,mean)
-mids = cbind(as.data.frame(do.call(rbind,mids)),Annotation=names(mids))
-mids[1,1:2]= mids[1,1:2]+5
-gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
-  geom_point(aes(colour=Annotation)) +
-  geom_label(data=mids,aes(label=Annotation),size=16)+
-  guides(colour=FALSE)+
-  theme_grey(base_size = 36) +
-  xlab('tSNE1')+
-  ylab('tSNE2')
-#This assumes this is being run with rmarkdown::render with defaults, which places the current working directory to the vignette directory.
-png('../inst/images/PBMC_Annotation.png',width=960,height=960)
-plot(gg)
-dev.off()
-#Tarted up before and after shots
-gg = plotChangeMap(sc,out,'IGKC',PBMC_DR)
-gg = gg +
-  xlab('tSNE1') +
-  ylab('tSNE2') +
-  ggtitle("log10 IGKC expression change after decontamination")
-png('../inst/images/IGKC_comparison.png',width=1920,height=960)
-plot(gg)
-dev.off()
 

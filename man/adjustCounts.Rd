@@ -2,23 +2,35 @@
 % Please edit documentation in R/adjustCounts.R
 \name{adjustCounts}
 \alias{adjustCounts}
-\title{Remove background contamination from cell expression profile}
+\title{Remove background contamination from count matrix}
 \usage{
-adjustCounts(sc, roundToInt = FALSE, verbose = FALSE, tol = 0.001,
-  dropWholeCountsOnly = FALSE, pCut = 0.01)
+adjustCounts(
+  sc,
+  clusters = NULL,
+  method = c("subtraction", "soupOnly", "multinomial"),
+  roundToInt = FALSE,
+  verbose = 1,
+  tol = 0.001,
+  pCut = 0.01,
+  ...
+)
 }
 \arguments{
 \item{sc}{A SoupChannel object.}
 
+\item{clusters}{A vector of cluster IDs, named by cellIDs.  If NULL clusters auto-loaded from \code{sc}.  If FALSE, no clusters are used.  See details.}
+
+\item{method}{Method to use for correction.  See details.  One of 'multinomial', 'soupOnly', or 'subtraction'}
+
 \item{roundToInt}{Should the resulting matrix be rounded to integers?}
 
-\item{verbose}{Should function be verbose?}
+\item{verbose}{Integer giving level of verbosity.  0 = silence, 1 = Basic information, 2 = Very chatty, 3 = Debug.}
 
 \item{tol}{Allowed deviation from expected number of soup counts.  Don't change this.}
 
-\item{dropWholeCountsOnly}{Don't set this to TRUE unless you know what you're doing.  See details.}
+\item{pCut}{The p-value cut-off used when \code{method='soupOnly'}.}
 
-\item{pCut}{The p-value cut-off used when \code{dropWholeCountsOnly=TRUE}.}
+\item{...}{Passed to expandClusters.  Of particular interest is the nCores parameter which can be used to parallelise the calculation.}
 }
 \value{
 A modified version of the table of counts, with background contamination removed.
@@ -29,7 +41,13 @@ After the level of background contamination has been estimated or specified for 
 \details{
 This essentially subtracts off the mean expected background counts for each gene, then redistributes any "unused" counts.  A count is unused if its subtraction has no effect.  For example, subtracting a count from a gene that has zero counts to begin with.
 
-If \code{dropWholeCountsOnly=TRUE} then an aggressive alternative strategy is used.  **This is primarily kept for historical reasons and is not recommended.**  For each gene in each cell, this strategy either does nothing, or sets the counts to 0.  This is very effective at removing the smattering of low-level contamination, but leaves any gene that has a contribution from both background and the cell itself unchanged.  This estimation is done by sorting genes within each cell by their p-value under the null of the expected soup fraction.  So that genes that definitely do have a endogenous contribution are at the end of the list with p=0.  Those genes for which there is poor evidence of endogenous cell expression are removed, until we have removed approximately nUMIs*rho molecules.
+As expression data is highly sparse at the single cell level, it is highly recommended that clustering information be provided to allow the subtraction method to share information between cells.  Without grouping cells into clusters, it is difficult (and usually impossible) to tell the difference between a count of 1 due to background contamination and a count of 1 due to endogenous expression.  This ambiguity is removed at the cluster level where counts can be aggregated across cells.  This information can then be propogated back to the individual cell level to provide a more accurate removal of contaminating counts.
+
+To provide clustering information, either set clustering on the SoupChannel object with \code{\link{setClusters}} or explicitly passing the \code{clusters} paramater.  
 
 If \code{roundToInt=TRUE}, this function will round the result to integers.  That is, it will take the floor of the connected value and then round back up with probability equal to the fractional part of the number.
+
+The \code{method} parameter controls how the removal of counts in performed.  This should almost always be left at the default ('subtraction'), which iteratively subtracts counts from all genes as described above.  The 'soupOnly' method will use a p-value based estimation procedure to identify those genes that can be confidently identified as having endogenous expression and removes everything else (described in greater detail below).  Because this method either removes all or none of the expression for a gene in a cell, the correction procedure is much faster.  Finally, the 'multinomial' method explicitly maximises the multinomial likelihood for each cell.  This method gives essentially identical results as 'subtraction' and is considerably slower.
+
+In greater detail, the 'soupOnly' method is done by sorting genes within each cell by their p-value under the null of the expected soup fraction using a Poisson model.  So that genes that definitely do have a endogenous contribution are at the end of the list with p=0.  Those genes for which there is poor evidence of endogenous cell expression are removed, until we have removed approximately nUMIs*rho molecules.  The cut-off to prevent removal of genes above nUMIs*rho in each cell is achieved by calculating a separate Poisson p-value for the total number of counts removed to exceed nUMIs*rho, again using a Poisson model.  The two p-values are combined using Fisher's method and the cut-off is applied to the resulting combined p-value calculated using a chi-squared distribution with 4 degrees of freedom.
 }

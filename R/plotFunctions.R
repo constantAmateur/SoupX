@@ -175,10 +175,10 @@ plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
 #' @param cleanedMatrix A cleaned matrix to compare against the raw one.  Usually the output of \code{\link{adjustCounts}}.
 #' @param geneSet A vector with the names of the genes to aggregate and plot evidence for.
 #' @param DR A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>_<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.
-#' @param dataType How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, change plots the relative fractional change (i.e., (old-new)/old) for each cell and is the default.
+#' @param dataType How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, soupFrac plots the fraction of the observed counts that are identified as contamination (i.e., (old-new)/old) for each cell and is the default.
 #' @param logData Should we log the thing we plot?
 #' @return A ggplot2 containing the plot.
-plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('change','binary','counts'),logData=TRUE){
+plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','binary','counts'),logData=FALSE){
   dataType = match.arg(dataType)
   if(dataType=='binary')
     logData=FALSE
@@ -193,13 +193,15 @@ plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('change','binary
     stop("rownames of DR need to match column names of sc$toc")
   colnames(DR)[1:2] = c('RD1','RD2')
   #Simple one panel version
-  if(dataType=='change'){
+  if(dataType=='soupFrac'){
     df = DR
     old = colSums(sc$toc[geneSet,rownames(df),drop=FALSE])
     new = colSums(cleanedMatrix[geneSet,rownames(df),drop=FALSE])
     relChange = (old-new)/old
+    df$old = old
+    df$new = new
     df$relChange=relChange
-    nom = 'RelChange'
+    nom = 'SoupFrac'
     if(logData){
       df$relChange = log10(df$relChange)
       nom = paste0('log10(',nom,')')
@@ -209,8 +211,8 @@ plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('change','binary
     }
     df = df[order(!is.na(df$relChange)),]
     #Truncate to prevent -Inf -> NA coloured dots
-    df$relChange[which(df$relChange<zLims[0])] = zLims[0]
-    df$relChange[which(df$relChange>zLims[1])] = zLims[1]
+    df$relChange[which(df$relChange<zLims[1])] = zLims[1]
+    df$relChange[which(df$relChange>zLims[2])] = zLims[2]
     gg = ggplot(df,aes(RD1,RD2)) +
       geom_point(aes(col=relChange),size=0.5) +
       xlab('ReducedDim1') +

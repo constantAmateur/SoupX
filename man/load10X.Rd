@@ -4,9 +4,15 @@
 \alias{load10X}
 \title{Load a collection of 10X data-sets}
 \usage{
-load10X(dataDir, cellIDs = NULL, channelName = NULL,
-  readArgs = list(), includeFeatures = c("Gene Expression"),
-  verbose = TRUE, ...)
+load10X(
+  dataDir,
+  cellIDs = NULL,
+  channelName = NULL,
+  readArgs = list(),
+  includeFeatures = c("Gene Expression"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{dataDir}{Top level cellranger output directory (the directory that contains the "raw_gene_bc_matrices" folder).}

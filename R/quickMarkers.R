@@ -32,6 +32,15 @@ quickMarkers = function(toc,clusters,N=10,FDR=0.01,expressCut=0){
                  p.adjust(phyper(nObs[,e]-1,nTot,ncol(toc)-nTot,clCnts[colnames(nObs)[e]],lower.tail=FALSE),method='BH'))
   qvals = do.call(cbind,qvals)
   colnames(qvals) = colnames(nObs)
+  #Get gene frequency of second best
+  sndBest = lapply(seq_len(ncol(tf)),function(e) apply(tf[,-e,drop=FALSE],1,max))
+  sndBest = do.call(cbind,sndBest)
+  colnames(sndBest) = colnames(tf)
+  #And the name
+  sndBestName = lapply(seq_len(ncol(tf)),function(e) (colnames(tf)[-e])[apply(tf[,-e,drop=FALSE],1,which.max)])
+  sndBestName = do.call(cbind,sndBestName)
+  colnames(sndBestName) = colnames(tf)
+  rownames(sndBestName) = rownames(tf)
   #Now get the top N for each group
   w = lapply(seq_len(ncol(nObs)),function(e){
              o = order(score[,e],decreasing=TRUE)
@@ -47,7 +56,9 @@ quickMarkers = function(toc,clusters,N=10,FDR=0.01,expressCut=0){
                    cluster = colnames(nObs)[ww[,2]],
                    geneFrequency = tf[ww],
                    geneFrequencyOutsideCluster = ntf[ww],
+                   geneFrequencySecondBest = sndBest[ww],
                    geneFrequencyGlobal = nTot[ww[,1]]/ncol(toc),
+                   secondBestClusterName = sndBestName[ww],
                    tfidf = score[ww],
                    idf = idf[ww[,1]],
                    qval = qvals[ww])

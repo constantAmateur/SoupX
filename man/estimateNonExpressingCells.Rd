@@ -4,8 +4,13 @@
 \alias{estimateNonExpressingCells}
 \title{Calculate which cells genuinely do not express a particular gene or set of genes}
 \usage{
-estimateNonExpressingCells(sc, nonExpressedGeneList, clusters = NULL,
-  maximumContamination = 1, pCut = 0.05)
+estimateNonExpressingCells(
+  sc,
+  nonExpressedGeneList,
+  clusters = NULL,
+  maximumContamination = 1,
+  FDR = 0.05
+)
 }
 \arguments{
 \item{sc}{A SoupChannel object.}
@@ -16,7 +21,7 @@ estimateNonExpressingCells(sc, nonExpressedGeneList, clusters = NULL,
 
 \item{maximumContamination}{The maximum contamination fraction that you would reasonably expect.  The lower this value is set, the more aggressively cells are excluded from use in estimation.}
 
-\item{pCut}{A Poisson test is used to identify cells to exclude, this is the p value cut-off to use.  Higher pCut = more aggressive exclusion.}
+\item{FDR}{A Poisson test is used to identify cells to exclude, this is the false discevore rate to use.  Higher FDR = more aggressive exclusion.}
 }
 \value{
 A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.
@@ -31,7 +36,7 @@ This function will use a conservative approach to excluding cells that it thinks
 
 To this end, this function will exclude any cluster of cells in which any cell is deemed to have geunine expression of a gene set.  Clustering of data is beyond the scope of this package, but can be performed by the user.  In the case of 10X data mapped using cellranger and loaded using \code{\link{load10X}}, the cellranger graph based clustering is automatically loaded and used.
 
-To decide if a cell is genuinely expressing a set of genes, a Poisson test is used.  This tests whether the observed expression is greater than \code{maximumContamination} times the expected number of counts for a set of genes, if the cell were assumed to be derived wholy from the background.  This process can be made less conservative (i.e., excluding fewer cells/clusters) by either decreasing the value of the maximum contamination the user believes is plausible (\code{maximumContamination}) or making the significance threshold for the test more strict (by reducing \code{pCut}).
+To decide if a cell is genuinely expressing a set of genes, a Poisson test is used.  This tests whether the observed expression is greater than \code{maximumContamination} times the expected number of counts for a set of genes, if the cell were assumed to be derived wholy from the background.  This process can be made less conservative (i.e., excluding fewer cells/clusters) by either decreasing the value of the maximum contamination the user believes is plausible (\code{maximumContamination}) or making the significance threshold for the test more strict (by reducing \code{FDR}).
 }
 \seealso{
 calculateContaminationFraction plotMarkerMap
