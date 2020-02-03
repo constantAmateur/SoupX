@@ -3,6 +3,7 @@
 S3method(print,SoupChannel)
 export(SoupChannel)
 export(adjustCounts)
+export(autoEstCont)
 export(calculateContaminationFraction)
 export(estimateNonExpressingCells)
 export(estimateSoup)
