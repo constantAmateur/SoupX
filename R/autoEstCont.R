@@ -103,25 +103,3 @@ autoEstCont = function(sc,nMarks = 50,tfidfMin=0.8,soupMin=1e-4,rhoMax=1.0,FDR=0
   }
   return(dd)
 }
-
-plot(0,0,
-     xlab='inClustFrac',
-     ylab='globalFrac',
-     xlim=c(0,1),
-     ylim=c(0,1),
-     frame.plot=FALSE,
-     type='n')
-x=seq(0,1,.01)
-ii=0
-abline(v=0.2,h=0.05,lty=2)
-tfs = c(2,1.5,1,0.9,0.8,0.5)
-for(tt in tfs){
-  ii=ii+1
-  lines(x,exp(-tt/x),col=ii)
-}
-legend(x='topleft',
-       col=seq_along(tfs),
-       lty=1,
-       legend=tfs,
-       bty='n'
-)

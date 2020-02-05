@@ -21,7 +21,7 @@ quickMarkers(toc, clusters, N = 10, FDR = 0.01, expressCut = 0)
 data.frame with top N markers (or all that pass the hypergeometric test) and their statistics for each cluster.
 }
 \description{
-Uses tf-idf ordering to get the top N markers of each cluster.  For each cluster, either the top N or all genes passing the hypergeometric test with the FDR specified.
+Uses tf-idf ordering to get the top N markers of each cluster.  For each cluster, either the top N or all genes passing the hypergeometric test with the FDR specified, whichever list is smallest.
 }
 \details{
 Term Frequency - Inverse Document Frequency is used in natural language processing to identify terms specific to documents.  This function uses the same idea to order genes within a group by how predictive of that group they are.  The main advantage of this is that it is extremely fast and gives reasonable results.
