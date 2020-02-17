@@ -15,7 +15,7 @@
 #' @export 
 #' @param sc A SoupChannel object.
 #' @param nonExpressedGeneList A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).
-#' @param useToEst A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.
+#' @param useToEst A boolean matrix of dimensions ncol(toc) x length(nonExpressedGeneList) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.
 #' @param verbose Print best estimate.
 #' @param cellSpecificEstimates Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.
 #' @param stanParams Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.

@@ -18,7 +18,7 @@ calculateContaminationFraction(
 
 \item{nonExpressedGeneList}{A list containing sets of genes which can be assumed to be non-expressed in a subset of cells (see details).}
 
-\item{useToEst}{A boolean matrix of dimensions length(nonExpressedGeneList) x ncol(toc) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.}
+\item{useToEst}{A boolean matrix of dimensions ncol(toc) x length(nonExpressedGeneList) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.}
 
 \item{verbose}{Print best estimate.}
 
