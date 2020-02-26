@@ -29,7 +29,7 @@ expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose
     #How should they be weighted
     ww = ws[wCells]/sum(ws[wCells])
     #What is the limits
-    lims = cellObsCnts[,wCells]
+    lims = cellObsCnts[,wCells,drop=FALSE]
     #And how many soup
     nSoup = clustSoupCnts[,j]
     #Create the output object
