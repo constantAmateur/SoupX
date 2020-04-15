@@ -6,44 +6,56 @@
 \usage{
 autoEstCont(
   sc,
-  nMarks = 50,
-  tfidfMin = 0.8,
-  soupMin = 1e-04,
-  rhoMax = 1,
-  FDR = 0.1,
-  minCnts = 1,
+  topMarkers = NULL,
+  tfidfMin = 1,
+  soupQuantile = 0.9,
+  maximumContamination = 0.8,
+  rhoMaxFDR = 0.2,
+  priorRho = 0.05,
+  priorRhoStdDev = 0.1,
   doPlot = TRUE,
-  ...
+  forceAccept = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
 \item{sc}{The SoupChannel object.}
 
-\item{nMarks}{How many marker genes to use. These must also pass the tfidf cut-off and be highly expressed in the soup, so there may end up being fewer than this number.}
+\item{topMarkers}{A data.frame giving marker genes.  Must be sorted by decreasing specificity of marker and include a column 'gene' that contains the gene name.  If set to NULL, markers are estimated using \code{\link{quickMarkers}}.}
 
 \item{tfidfMin}{Minimum value of tfidf to accept for a marker gene.}
 
-\item{soupMin}{Minimum value of expression in the background to accept for marker.}
+\item{soupQuantile}{Only use genes that are at or above this expression quantile in the soup.  This prevents inaccurate estimates due to using genes with poorly constrained contribution to the background.}
 
-\item{rhoMax}{What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.}
+\item{maximumContamination}{What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.}
 
-\item{FDR}{False discovery rate for statistical tests.}
+\item{rhoMaxFDR}{False discovery rate passed to \code{\link{estimateNonExpressingCells}}, to test if rho is less than \code{maximumContamination}.}
 
-\item{minCnts}{Don't use estimates with fewer than this many counts.}
+\item{priorRho}{Mode of gamma distribution prior on contamination fraction.}
 
-\item{doPlot}{Create a plot summarising the estimation?}
+\item{priorRhoStdDev}{Standard deviation of gamma distribution prior on contamination fraction.}
 
-\item{...}{Passed to density.}
+\item{doPlot}{Create a plot showing the density of estimates?}
+
+\item{forceAccept}{If this function returns an extremely high contamination estimate, an error is usually raised.  Setting this to TRUE forces this estimate to be used.}
+
+\item{verbose}{Be verbose?}
+}
+\value{
+A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
 }
 \description{
 The idea of this method is that genes that are highly expressed in the soup and are marker genes for some population can be used to estimate the background contamination.  Marker genes are identified using the tfidf method (see \code{\link{quickMarkers}}).  The contamination fraction is then calculated at the cluster level for each of these genes and clusters are then aggressively pruned to remove those that give implausible estimates.
 }
 \details{
-The pruning of implausible clusters is based on several parameters.  Firstly, clusters are excluded for estimation on a gene-by-gene basis using \code{\link{estimateNonExpressingCells}} as would be done had the genes been specified by the user.  Any cluster whose estimation for rho is not significantly less than \code{rhoMax} (as measured by a Poisson test) is also thrown out (with false discovery rate \code{FDR}).
+This set of marker genes is filtered to include only those with tf-idf value greater than \code{tfidfMin}.  A higher tf-idf value implies a more specific marker.  Specifically a cut-off t implies that a marker gene has the property that geneFreqGlobal < exp(-t/geneFreqInClust).  See \code{\link{quickMarkers}}.  It may be necessary to decrease this value for data sets with few good markers.
 
-Finally, clusters are excluded if they number of observed counts is less than \code{minCnts}.  The default (where \code{minCnts=1}) essentially prevents an excess of estimates of zero contamination skewing the estimation.
+This set of marker genes is filtered down to include only the genes that are highly expressed in the soup, controlled by the \code{soupQuantile} parameter.  Genes highly expressed in the soup provide a more precise estimate of the contamination fraction.
 
-An estimate of the global contamination rate is then provided based on the value of rho with the highest density in the estimates using the pruned cluster/gene pairs.  The logic behind this is that  clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.
+The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
 
-Note that the interpretation of the tf-idf cut-off in this context is that a cut-off t implies that a marker gene has the property that geneFreqGlobal < exp(-t/geneFreqInClust).
+For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
+}
+\seealso{
+quickMarkers
 }
