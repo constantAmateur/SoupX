@@ -151,9 +151,9 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
     lines(rhoProbes,xx,lty=2)
     abline(v=rhoProbes[which.max(tmp)],col='red')
     legend(x='topright',
-           legend=c(sprintf('prior ρ %g(±%g)',priorRho,priorRhoStdDev),
-                    sprintf('post ρ %g(%g,%g)',rhoEst,rhoFWHM[1],rhoFWHM[2]),
-                    'ρ max'),
+           legend=c(sprintf('prior rho %g(+/-%g)',priorRho,priorRhoStdDev),
+                    sprintf('post rho %g(%g,%g)',rhoEst,rhoFWHM[1],rhoFWHM[2]),
+                    'rho max'),
            lty=c(2,1,1),
            col=c('black','black','red'),
            bty='n')
