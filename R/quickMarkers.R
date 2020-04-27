@@ -61,6 +61,7 @@ quickMarkers = function(toc,clusters,N=10,FDR=0.01,expressCut=0){
                    secondBestClusterName = sndBestName[ww],
                    tfidf = score[ww],
                    idf = idf[ww[,1]],
-                   qval = qvals[ww])
+                   qval = qvals[ww],
+                   stringsAsFactors=FALSE)
   return(out)
 }

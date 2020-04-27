@@ -10,7 +10,8 @@ calculateContaminationFraction(
   useToEst,
   verbose = TRUE,
   cellSpecificEstimates = FALSE,
-  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1)
+  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1),
+  forceAccept = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ calculateContaminationFraction(
 \item{cellSpecificEstimates}{Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.}
 
 \item{stanParams}{Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.}
+
+\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.}
 }
 \value{
 A modified version of \code{sc} with estimates of the contamination (rho) added to the metaData table.

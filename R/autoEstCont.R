@@ -20,10 +20,12 @@
 #' @param priorRho Mode of gamma distribution prior on contamination fraction.
 #' @param priorRhoStdDev Standard deviation of gamma distribution prior on contamination fraction.
 #' @param doPlot Create a plot showing the density of estimates?
-#' @param forceAccept If this function returns an extremely high contamination estimate, an error is usually raised.  Setting this to TRUE forces this estimate to be used. 
+#' @param forceAccept Passed to \code{\link{setContaminationFraction}}.
 #' @param verbose Be verbose?
 #' @seealso quickMarkers
 #' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
+#' @importFrom stats dgamma qgamma 
+#' @importFrom graphics abline lines legend plot
 autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){
   if(!'clusters' %in% colnames(sc$metaData))
     stop("Clustering information must be supplied, run setClusters first.")
@@ -132,6 +134,7 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
                  tmp = dd[dd$useEst,]
                  mean(dgamma(e,k+tmp$obsCnt,scale=theta/(1+theta*tmp$expCnt)))
                   })
+  #Calculate prior curve
   xx=dgamma(rhoProbes,k,scale=theta)
   #Get estimates
   rhoEst = rhoProbes[which.max(tmp)]
@@ -175,21 +178,7 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
                     rhoEst = rhoEst,
                     rhoFWHM = rhoFWHM
                     )
-  #Check if the estimate returned is reasonable
-  if(contEst>1.0)
-    stop("Automatic density estimation failed.")
-  if(verbose)
-    message(sprintf("Calculated contamination fraction of %.2g",contEst))
-  if(contEst>0.5){
-    if(forceAccept){
-      warning("Extremely high contamination estimated.  This likely represents a failure in estimating the contamination.  Consider if you really want to use this value.")
-    }else{
-    stop("Extremely high contamination estimated.  This likely represents a failure in estimating the contamination.  Inspect diagnostic plot for smaller peak closer to 0, try guided contamination estimation or manually set contamination.")
-    }
-  }
-  if(contEst>0.3)
-    warning("Estimated contamination is very high.  Check diagnostic plot for smaller peak closer to 0.")
-  #OK, let's proceed.
-  sc = setContaminationFraction(sc,contEst)
+  #Set the contamination fraction
+  sc = setContaminationFraction(sc,contEst,forceAccept=forceAccept)
   return(sc)
 }

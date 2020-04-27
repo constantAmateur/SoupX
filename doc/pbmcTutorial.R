@@ -2,11 +2,14 @@
 library(knitr)
 opts_chunk$set(tidy=TRUE)
 
-## ----genes1--------------------------------------------------------------
-nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC'))
-
-## ----genes2--------------------------------------------------------------
-nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC','IGHG1','IGHG3'))
+## ----quick_start, eval=FALSE---------------------------------------------
+#  library(SoupX)
+#  #Load data and estimate soup profile
+#  sc = load10X('Path/to/cellranger/outs/folder/')
+#  #Estimate rho
+#  sc = autoEstCont(sc)
+#  #Clean teh data
+#  out = adjustCounts(sc)
 
 ## ----install, eval=FALSE-------------------------------------------------
 #  devtools::install_github("constantAmateur/SoupX")
@@ -22,6 +25,9 @@ sc = load10X(dataDirs)
 ## ----estimateSoup, eval=FALSE--------------------------------------------
 #  sc = load10X(dataDirs,keepDroplets=TRUE)
 #  sc = estimateSoup(sc)
+
+## ----set_clustering------------------------------------------------------
+sc = setClusters(sc,PBMC_DR$Cluster)
 
 ## ----init_dataset--------------------------------------------------------
 data(PBMC_DR)
@@ -47,6 +53,21 @@ plot(gg)
 ## ----set_rho-------------------------------------------------------------
 sc = setContaminationFraction(sc,0.2)
 
+## ----genes1--------------------------------------------------------------
+nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC'))
+
+## ----genes2--------------------------------------------------------------
+nonExpressedGeneList = list(HB=c('HBB','HBA2'),IG = c('IGKC','IGHG1','IGHG3'))
+
+## ----auto_est------------------------------------------------------------
+sc = autoEstCont(sc)
+
+## ----auto_est_unif_prior-------------------------------------------------
+sc = autoEstCont(sc,priorRhoStdDev=0.3)
+
+## ----auto_est_stupid_prior-----------------------------------------------
+sc = autoEstCont(sc,priorRho=0.3,priorRhoStdDev=0.05)
+
 ## ----topSoupGenes--------------------------------------------------------
 head(sc$soupProfile[order(sc$soupProfile$est,decreasing=TRUE),],n=20)
 
@@ -68,9 +89,6 @@ plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes),clusters=setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
 plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 
-## ----set_clustering------------------------------------------------------
-sc = setClusters(sc,PBMC_DR$Cluster)
-
 ## ----calcContamination---------------------------------------------------
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 
@@ -80,9 +98,6 @@ head(sc$metaData)
 ## ----cellSpecificRho,eval=FALSE------------------------------------------
 #  sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
 #  quantile(sc$metaData$rho)
-
-## ----manualRho, eval=FALSE-----------------------------------------------
-#  sc = setContaminationFraction(sc,0.1)
 
 ## ----decontaminate-------------------------------------------------------
 out = adjustCounts(sc,clusters = setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))

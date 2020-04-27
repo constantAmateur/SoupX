@@ -37,7 +37,7 @@ autoEstCont(
 
 \item{doPlot}{Create a plot showing the density of estimates?}
 
-\item{forceAccept}{If this function returns an extremely high contamination estimate, an error is usually raised.  Setting this to TRUE forces this estimate to be used.}
+\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.}
 
 \item{verbose}{Be verbose?}
 }
