@@ -1,0 +1,14 @@
+year = sub('-.*','',meta$Date)
+note = sprintf('R package version %s',meta$Version)
+
+bibentry(bibtype = "article",
+  author = c(person(c("Matthew",'D'),'Young'),
+             person("Sam",'Behjati')),
+  title = "{SoupX} removes ambient RNA contamination from droplet based single-cell RNA sequencing data",
+  journal = "bioRxiv",
+  year = 2018,
+  doi = "10.1101/303727",
+  textVersion = 
+  "Young, M.D., Behjati, S. (2018). SoupX removes ambient RNA contamination from droplet based single-cell RNA sequencing data. bioRxiv, 303727"
+)
+
