@@ -26,21 +26,23 @@ setClusters = function(sc,clusters){
 #' @export
 #' @param sc A SoupChannel object.
 #' @param contFrac The contamination fraction.  Either a constant, in which case the same value is used for all cells, or a named vector, in which case the value is set for each cell.
-#' @param forceAccept If this function returns an extremely high contamination estimate, an error is usually raised.  Setting this to TRUE forces this estimate to be used. 
+#' @param forceAccept A warning or error is usually returned for extremely high contamination fractions.  Setting this to TRUE will turn these into messages and proceed.
 #' @return A modified SoupChannel object for which the contamination (rho) has been set.
 setContaminationFraction = function(sc,contFrac,forceAccept=FALSE){
-  #Do some basic checks
-  if(any(contFrac>1)){
+  #Never want to let this through no matter what
+  if(any(contFrac>1))
     stop("Contamination fraction greater than 1 detected.  This is impossible and likely represents a failure in the estimation procedure used.")
-  }else if(any(contFrac>0.5)){
-    if(forceAccept){
-      warning(sprintf("Extremely high contamination estimated (%.2g).  This likely represents a failure in estimating the contamination fraction.  Consider if you really want to use this value.",max(contFrac)))
-    }else{
-      stop(sprintf("Extremely high contamination estimated (%.2g).  This likely represents a failure in estimating the contamination fraction.  Set forceAppcept=TRUE to proceed with this value.",max(contFrac)))
-    }
-  }else if(any(contFrac>0.3)){
-    warning(sprintf("Estimated contamination is very high (%.2g).  Check diagnostic plot for smaller peak closer to 0.",max(contFrac)))
+  #Let everything else through with a diagnostic message
+  if(forceAccept){
+    warning = message
+    stop = message
   }
+  if(any(contFrac>0.5)){
+    stop(sprintf("Extremely high contamination estimated (%.2g).  This likely represents a failure in estimating the contamination fraction.  Set forceAccept=TRUE to proceed with this value.",max(contFrac)))
+  }else if(any(contFrac>0.3)){
+    warning(sprintf("Estimated contamination is very high (%.2g).",max(contFrac)))
+  }
+  #Now do the setting
   if(length(contFrac)==1){
     sc$metaData$rho=contFrac
   }else{

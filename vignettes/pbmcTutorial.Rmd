@@ -73,27 +73,30 @@ library(SoupX)
 
 Like every other single cell tool out there, we are going to use one of the 10X PBMC data sets to demonstrate how to use this package.  Specifically, we will use this [PBMC dataset](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).  The starting point is to download the [raw](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz) and [filtered](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz) cellranger output and extract them to a folder somewhere as follows.
 
-```{bash download, results="hide",message=FALSE,warning=FALSE,eval=TRUE}
+```{bash download, eval=FALSE}
 mkdir SoupX_pbmc4k_demo
 cd SoupX_pbmc4k_demo
 wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz
 wget -q http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz
 tar zxf pbmc4k_raw_gene_bc_matrices.tar.gz
 tar zxf pbmc4k_filtered_gene_bc_matrices.tar.gz
-cd ../../../
 ```
 
 ## Loading the data
 
-SoupX comes with a convenience function for loading 10X data processed using cellranger.  We will use this to get started.
+SoupX comes with a convenience function for loading 10X data processed using cellranger.  If you downloaded the data as above you can use it to get started by running,
 
-```{r load_data}
-library(SoupX)
+```{r load_data,eval=FALSE}
 dataDirs = c('SoupX_pbmc4k_demo/')
 sc = load10X(dataDirs)
 ```
 
-This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.
+This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  The PBMC data is bundled with SoupX as a matrix and some annotation files.  Creating a `SoupChannel` object from a matrix can be done by running,
+
+```{r load_data_manual}
+data(PBMC)
+sc = SoupChannel(PBMC_tod,PBMC_tod[,PBMC_cellBarcodes])
+```
 
 ## Profiling the soup
 
@@ -108,30 +111,50 @@ Which modifies the `SoupChannel` object to add estimates of the soup expression 
 
 Note that we had to reload the `sc` object to do this.  By default, when the soup is estimated the table of droplets `tod` is dropped to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
 
-## Adding clustering information
+## Adding extra meta data to the SoupChannel object
 
-If you are loading 10X data with a full cellranger output folder, the cellranger clustering will be loaded automatically.  This is not the case with our data, so we have to specify it manually.
+We have some extra meta data that it is essential we include in our `SoupChannel` object.  In general you can add any meta data by providing a data.frame with row names equal to the column names of the `toc` when building the `SoupChannel` object.  Like this,
+
+```{r load_data_with_mDat, eval=FALSE}
+sc = SoupChannel(PBMC_tod,PBMC_tod[,PBMC_cellBarcodes],metaData=PBMC_DR)
+```
+
+However, there are some bits of meta data that are so essential that they have their own special loading functions.  The most essential is clustering information.  Without it, SoupX will still work, but you won't be able to automatically estimate the contamination fraction and the correction step will be far less effective.  We can add clustering data by running,
 
 ```{r set_clustering}
 sc = setClusters(sc,PBMC_DR$Cluster)
 ```
 
+It can also be very useful to be able to visualise our data by providing some kind of dimension reduction for the data.  We can do this by running,
+
+```{r add_DR}
+sc = setDR(sc,PBMC_DR)
+```
+
+This is usually not needed when using the `load10X` function as the cellranger produced values are automatically loaded.
+
 ## Visual sanity checks
 
 It is often the case that really what you want is to get a rough sense of whether the expression of a gene (or group of genes) in a set of cells is derived from the soup or not.  At this stage we already have enough information to do just this.  Before proceeding, we will briefly discuss how to do this.
 
-Say that we are interested in the expression of the gene IGKC, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  Suppose we have used some other method to produce a reduced dimension representation of our data (PCA, tSNE, UMAP or whatever).  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data.  This information is also automatically loaded from the cellranger output if it is present.
+Let's start by getting a general overview of our PBMC data by plotting it with the provided annotation.
 
-The tSNE coordinates for the PBMC data has been included with the package.  For the exact details as to how it was calculated look at `?PBMC_DR`.  Let's load this data
-
-```{r init_dataset}
-data(PBMC_DR)
+```{r plot_annot}
+library(ggplot2)
+mids = aggregate(cbind(RD1,RD2) ~ Annotation,data=PBMC_DR,FUN=mean)
+gg = ggplot(PBMC_DR,aes(RD1,RD2)) + 
+  geom_point(aes(colour=Annotation),size=0.2) +
+  geom_label(data=mids,aes(label=Annotation)) +
+  ggtitle('PBMC 4k Annotation') +
+  guides(colour = guide_legend(override.aes = list(size=1)))
+plot(gg)
 ```
 
-Now we can quickly visualise which cells express IGKC by extracting the counts for it from the `SoupChannel` object.
+SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else.  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data (see `?PBMC_DR`).
+
+Suppose that we are interested in the expression of the gene IGKC, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express IGKC by extracting the counts for it from the `SoupChannel` object.
 
 ```{r plot_IGKC}
-library(ggplot2)
 PBMC_DR$IGKC = sc$toc['IGKC',rownames(PBMC_DR)]
 gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
   geom_point(aes(colour=IGKC>0))
@@ -143,36 +166,23 @@ Wow!  We know from prior annotation that the cells in the cluster at the bottom 
 Before we get too carried away though, perhaps it's worth checking if the expression of IGKC in these scattered cells is more than we would expect by chance from the soup.  To really answer this properly, we need to know how much contamination is present in each cell, which will be the focus of the next sections.  But we can get a rough idea just by calculating how many counts we would expect for IGKC in each cell, by assuming that cell contained nothing but soup.  The function `soupMarkerMap` allows you to visualise the ratio of observed counts for a gene (or set of genes) to this expectation value.  Let's try it out,
 
 ```{r sanity_check}
-gg = plotMarkerMap(sc,'IGKC',PBMC_DR)
-plot(gg)
-```
-
-We pass the function three things: the `SoupChannel` containing information about each channel and it's soup profile, the gene (or set of genes) we are interested in and the reduced dimension co-ordinates of each gene.  SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else (Seurat was used in this case).  To save having to re-specify the dimension reduction for every plot, we can include it in the meta data,
-
-```{r add_DR}
-sc = setDR(sc,PBMC_DR)
-```
-
-Then these coordinates will be automatically used by all plotting functions.  For example,
-
-```{r sanity_check_auto}
 gg = plotMarkerMap(sc,'IGKC')
 plot(gg)
 ```
 
-Looking at the resulting plot, we see that the cells in the B-cell cluster have a reddish colour, indicating that they are expressed far more than we would expect by chance, even if the cell was nothing but background.  Our paradigm changing, antibody producing T-cells do not fare so well.  They all have a decidedly bluish hue, indicating that is completely plausible that the expression of IGKC in these cells is due to contamination from the soup.  Those cells that are shown as dots have zero expression for IGKC.
+There is no need to pass the tSNE coordinates to this function as we stored them in the `sc` object when we ran `setDR` above.  Looking at the resulting plot, we see that the cells in the B-cell cluster have a reddish colour, indicating that they are expressed far more than we would expect by chance, even if the cell was nothing but background.  Our paradigm changing, antibody producing T-cells do not fare so well.  They all have a decidedly bluish hue, indicating that is completely plausible that the expression of IGKC in these cells is due to contamination from the soup.  Those cells that are shown as dots have zero expression for IGKC.
 
 We have made these plots assuming each droplet contains nothing but background contamination, which is obviously not true.  Nevertheless, this can still be a useful quick and easy sanity check to perform.
 
 ## Estimating the contamination fraction
 
-Probably the most difficult part of using SoupX is accurately estimating the level of background contamination (represented as rho) in each channel.  There are two ways to do this: using the automatic method `autoEstCont`, or manually providing a list of "non expressed genes".  This vignette will demonstrate both methods, but we anticipate that the automatic method will be used in most circumstances.  Before that we will describe the idea that underpins both approaches; identifying genes that are not expressed by some cells in our data and the expression that we see must be due to contamination.
+Probably the most difficult part of using SoupX is accurately estimating the level of background contamination (represented as rho) in each channel.  There are two ways to do this: using the automatic `autoEstCont` method, or manually providing a list of "non expressed genes".  This vignette will demonstrate both methods, but we anticipate that the automatic method will be used in most circumstances.  Before that we will describe the idea that underpins both approaches; identifying genes that are not expressed by some cells in our data and the expression that we observe for these genes in these cells must be due to contamination.
 
 This is the most challenging part of the method to understand and we have included a lot of detail here. But successfully applying SoupX does not depend on understanding all these details.  The key thing to understand is that the contamination fraction estimate is the fraction of your data that will be discarded.  If this value is set too low, your "corrected" data will potentially still be highly contaminated.  If you set it too high, you will discard real data, although there are good reasons to want to do this at times (see section below).  If the contamination fraction is in the right ball park, SoupX will remove most of the contamination.  It will generally not matter if this number if off by a few percent.
 
 ### Manually specifying the contamination fraction
 
-It is worth considering simply manually fixing the contamination fraction at a certain value.  This seems like a bad thing to do intuitively, but there are actually good reasons you might want to.  When the contamination fraction is set too high, true expression will be removed from your data.  However, this is done in such a way that the counts that are most specific to a subset of cells (i.e., good marker genes) will be the absolutely last thing to be removed.  Because of this, it can be a sensible thing to set a high contamination fraction for a set of experiments and be confident that the vast majority of the contamination has been removed.
+It is worth considering simply manually fixing the contamination fraction at a certain value.  This seems like a bad thing to do intuitively, but there are actually good reasons you might want to.  When the contamination fraction is set too high, true expression will be removed from your data.  However, this is done in such a way that the counts that are most specific to a subset of cells (i.e., good marker genes) will be the absolute last thing to be removed.  Because of this, it can be a sensible thing to set a high contamination fraction for a set of experiments and be confident that the vast majority of the contamination has been removed.
 
 Even when you have a good estimate of the contamination fraction, you may want to set the value used artificially higher.  SoupX has been designed to be conservative in the sense that it errs on the side of retaining true expression at the cost of letting some contamination to creep through.  Our tests show that a well estimated contamination fraction will remove 80-90% of the contamination (i.e. the soup is reduced by an order of magnitude).  For most applications this is sufficient.  However, in cases where complete removal of contamination is essential, it can be worthwhile to increase the contamination fraction used by SoupX to remove a greater portion of the contamination.
 
@@ -306,22 +316,22 @@ it doesn't matter if some of these are not expressed in our data, they will then
 
 #### Estimating non-expressing cells
 
-Having decided on a set of genes with which to estimate the contamination, we next need to decide which cells genuinely express these genes and should not be used for estimating the intimation, and which do not and should.  This is done as follows,
+Having decided on a set of genes with which to estimate the contamination, we next need to decide which cells genuinely express these genes and should not be used for estimating the contamination, and which do not and should.  This is done as follows,
 
 ```{r calculateNullMatrix}
-useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes))
+useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes),clusters=FALSE)
 ```
 
 Which produces a matrix indicating which cells (rows) should use which sets of genes (columns) to estimate the contamination.  You will notice that the function returned a warning about cluster information not being provided.  As discussed above, SoupX tries to be conservative and prevents estimation both from cells with high expression of a gene set (igGenes in this case) and any cell that falls in the same cluster.  When no clustering information is given, it cannot do this so defaults to just excluding those cells that are obviously not suitable.  We can visualise which cells have been marked to use for estimation,
 
 ```{r visNullMatrix}
-plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
+plotMarkerMap(sc,geneSet=igGenes,useToEst=useToEst)
 ```
 
-Our Seurat PBMC_DR data also contains clustering information.  Let's see how things change if we provide clustering data.
+You'll notice that above we set `clusters=FALSE` which stops SoupX from using clustering information.  We provided this information earlier when we ran `setClusters`.  Let's see how things change if we let clustering information be used.
 
 ```{r calcNullMatrixWithClustering}
-useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes),clusters=setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
+useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes))
 plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 ```
 
@@ -351,16 +361,16 @@ sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSp
 quantile(sc$metaData$rho)
 ```
 
-This procedure depends on rstan and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in sc$fit (in both cell dependent and global estimation).
+This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `sc$fit` (in both cell dependent and global estimation).
 
 ## Correcting expression profile
 
 We have now calculated or set the contamination fraction for each cell and would like to use this to remove the contamination from the original count matrix.  As with estimating the contamination, this procedure is made much more robust by providing clustering information.  This is because there is much more power to separate true expression from contaminating expression when counts are aggregated into clusters.  Furthermore, the process of redistributing corrected counts from the cluster level to individual cells automatically corrects for variation in the cell specific contamination rate (see the paper for details).
 
-Usually you will have stored clustering information, either by having it automatically loaded by `load10X` or by running `setClusters`.  Here we will assume you have not,
+We have already loaded clustering information into our `sc` object with `setClusters`, which will be used by default.  So we can just run.
 
 ```{r decontaminate}
-out = adjustCounts(sc,clusters = setNames(PBMC_DR$Cluster,rownames(PBMC_DR)))
+out = adjustCounts(sc)
 ```
 
 The recommended mode of operation will produce a non-integer (although still sparse) matrix where the original counts have been corrected for background expression.  See the help, code, and paper for details of how this is done.  
@@ -427,13 +437,6 @@ Of course, the next thing you'll want to do is to load this corrected expression
 
 The corrected matrix can then be used for any downstream analysis in place of the uncorrected raw matrix. If you are using 10X data and would like to save these final counts out in the same format, you can use the [DropletUtils](https://bioconductor.org/packages/release/bioc/html/DropletUtils.html) write10xCounts function like this,
 
-```{r writeOut}
+```{r writeOut,eval=FALSE}
 DropletUtils:::write10xCounts('./strainedCounts',out)
 ```
-
-```{bash cleanup, include=FALSE}
-#Remove the data we downloaded
-rm -rf SoupX_pbmc4k_demo
-```
-
-Note that this vignette depends on external tools (such as `wget`) and so may not build out of the box on some platforms.

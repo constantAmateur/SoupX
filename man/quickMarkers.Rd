@@ -4,7 +4,7 @@
 \alias{quickMarkers}
 \title{Gets top N markers for each cluster}
 \usage{
-quickMarkers(toc, clusters, N = 10, FDR = 0.01, expressCut = 0)
+quickMarkers(toc, clusters, N = 10, FDR = 0.01, expressCut = 0.9)
 }
 \arguments{
 \item{toc}{Table of counts.  Must be a sparse matrix.}

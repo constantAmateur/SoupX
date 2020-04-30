@@ -15,7 +15,7 @@
 #' @param nonExpressedGeneList A list containing sets of genes which will be used to estimate the contamination fraction.
 #' @param clusters A named vector indicating how to cluster cells.  Names should be cell IDs, values cluster IDs.  If NULL, we will attempt to load it from sc$metaData$clusters.  If set to FALSE, each cell will be considered individually.
 #' @param maximumContamination The maximum contamination fraction that you would reasonably expect.  The lower this value is set, the more aggressively cells are excluded from use in estimation.
-#' @param FDR A Poisson test is used to identify cells to exclude, this is the false discevore rate to use.  Higher FDR = more aggressive exclusion.
+#' @param FDR A Poisson test is used to identify cells to exclude, this is the false discovery rate it uses.  Higher FDR = more aggressive exclusion.
 #' @seealso calculateContaminationFraction plotMarkerMap
 #' @return A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.
 estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maximumContamination=1.0,FDR=0.05){

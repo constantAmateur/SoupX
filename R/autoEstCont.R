@@ -140,6 +140,8 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
   rhoEst = rhoProbes[which.max(tmp)]
   rhoFWHM = range(rhoProbes[which(tmp>=(max(tmp)/2))])
   contEst = rhoEst
+  if(verbose)
+    message(sprintf("Estimated global rho of %.2f",rhoEst))
   ##I think the best way to do this is based on the density.
   #tmp = density(dd$rhoEst[dd$useEst],...)
   #contEst = tmp$x[which.max(tmp$y)]
@@ -171,13 +173,13 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
     #lines(tmp$x,tmp$y)
     #abline(v=contEst,col='red')
   }
-  sc$autoEst = list(dd=dd,
-                    priorRho=priorRho,
-                    priorRhoStdDev=priorRhoStdDev,
-                    posterior = tmp,
-                    rhoEst = rhoEst,
-                    rhoFWHM = rhoFWHM
-                    )
+  sc$fit = list(dd=dd,
+                priorRho=priorRho,
+                priorRhoStdDev=priorRhoStdDev,
+                posterior = tmp,
+                rhoEst = rhoEst,
+                rhoFWHM = rhoFWHM
+                )
   #Set the contamination fraction
   sc = setContaminationFraction(sc,contEst,forceAccept=forceAccept)
   return(sc)

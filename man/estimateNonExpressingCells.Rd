@@ -21,7 +21,7 @@ estimateNonExpressingCells(
 
 \item{maximumContamination}{The maximum contamination fraction that you would reasonably expect.  The lower this value is set, the more aggressively cells are excluded from use in estimation.}
 
-\item{FDR}{A Poisson test is used to identify cells to exclude, this is the false discevore rate to use.  Higher FDR = more aggressive exclusion.}
+\item{FDR}{A Poisson test is used to identify cells to exclude, this is the false discovery rate it uses.  Higher FDR = more aggressive exclusion.}
 }
 \value{
 A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.

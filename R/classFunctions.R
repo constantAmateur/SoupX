@@ -5,14 +5,13 @@
 #' @export
 #' @param tod Table of droplets.  A matrix with columns being each droplet and rows each gene.
 #' @param toc Table of counts.  Just those columns of \code{tod} that contain cells.
-#' @param metaData Meta-data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.
-#' @param soupRange Which droplets to estimate soup from. Passed to \code{\link{estimateSoup}}.
-#' @param keepDroplets Should we keep the full table of droplets?  Passed to \code{\link{estimateSoup}}.
+#' @param metaData Meta data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.
+#' @param soupEstParams Pramaters passed to \code{\link{estimateSoup}}.
 #' @param ... Any other named parameters to store.
 #' @return A SoupChannel object.
 #' @importFrom Matrix colSums
 #' @seealso SoupChannelList estimateSoup
-SoupChannel = function(tod,toc,metaData=NULL,soupRange=c(0,10),keepDroplets=FALSE,...){
+SoupChannel = function(tod,toc,metaData=NULL,soupEstParams=list(),...){
   if(!is.null(metaData) & !all(sort(colnames(toc))==sort(rownames(metaData))))
     stop("Rownames of metaData must match column names of table of counts.")
   #Munge everything into a list
@@ -32,7 +31,7 @@ SoupChannel = function(tod,toc,metaData=NULL,soupRange=c(0,10),keepDroplets=FALS
   out$nDropUMIs = colSums(tod)
   class(out) = c('list','SoupChannel')
   #Estimate the soup
-  out = estimateSoup(out,soupRange=soupRange,keepDroplets=keepDroplets)
+  out = do.call(estimateSoup,c(list(out),soupEstParams))
   return(out)
 }
 

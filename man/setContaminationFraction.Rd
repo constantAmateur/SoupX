@@ -11,7 +11,7 @@ setContaminationFraction(sc, contFrac, forceAccept = FALSE)
 
 \item{contFrac}{The contamination fraction.  Either a constant, in which case the same value is used for all cells, or a named vector, in which case the value is set for each cell.}
 
-\item{forceAccept}{If this function returns an extremely high contamination estimate, an error is usually raised.  Setting this to TRUE forces this estimate to be used.}
+\item{forceAccept}{A warning or error is usually returned for extremely high contamination fractions.  Setting this to TRUE will turn these into messages and proceed.}
 }
 \value{
 A modified SoupChannel object for which the contamination (rho) has been set.

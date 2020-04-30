@@ -9,15 +9,16 @@
   \item{RD1}{The first tSNE coordinate}
   \item{RD2}{The second tSNE coordinate}
   \item{Cluster}{A factor giving cluster assignment}
+  \item{Annotation}{A factor giving a cell type allocation for each cell}
 }}
 \source{
 \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 }
 \usage{
-data(PBMC_DR)
+data(PBMC)
 }
 \description{
-tSNE coordinates for PBMC 4k data used in the vignette.  tSNE have been calculated using standard Seurat(v2) settings.  Also includes a column indicating which Seurat cluster each cell belongs to.
+tSNE coordinates for PBMC 4k data used in the vignette.  tSNE have been calculated using standard Seurat(v2) settings.  Also includes a column indicating which Seurat cluster each cell belongs to and a basic cell type annotation.
 }
 \details{
 The full list of commands used to create this object (assuming \code{sc} is a \code{SoupChannel} object containing the PBMC4k data):
@@ -32,4 +33,5 @@ The full list of commands used to create this object (assuming \code{sc} is a \c
 \code{PBMC_DR = as.data.frame(srat@dr$tsne@cell.embeddings)}
 \code{colnames(PBMC_DR) = c('RD1','RD2')}
 \code{PBMC_DR$Cluster = factor(srat@meta.data[rownames(PBMC_DR),'res.1'])}
+\code{PBMC_DR$Annotation = factor(c('7'='B','4'='B','1'='T_CD4','2'='T_CD4','3'='T_CD8','5'='T_CD8','6'='NK','8'='NK','0'='MNP','9'='MNP','10'='MNP','11'='?')[as.character(PBMC_DR$Cluster)])}
 }
