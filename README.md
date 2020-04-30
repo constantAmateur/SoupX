@@ -18,6 +18,12 @@ The package can be installed by running
 devtools::install_github("constantAmateur/SoupX")
 ```
 
+If you encounter errors saying `multtest` is unavalibale, please install this manually from bioconductor with:
+
+```R
+BiocManager::install('multtest')
+```
+
 ## Quickstart
 
 Decontaminate one channel of 10X data mapped with cellranger by running:
@@ -38,6 +44,7 @@ out = adjustCounts(sc)
 ```
 
 `out` will then contain a corrected matrix to be used in place of the original table of counts in downstream analyses.
+
 
 ## Documentation
 
