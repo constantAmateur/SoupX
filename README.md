@@ -8,7 +8,7 @@ There's no way to know in advance what the contamination is in an experiment, al
 
 Even if you decide you don't want to use the SoupX correction methods for whatever reason, you should at least want to know how contaminated your data are.
 
-**NOTE:** The package focus has changed from v1.0.0 onwards.  The basic syntax is mostly the same as before, but there are three key differences in approach.  Firstly, you can no longer load multiple channels simultaneously and the concept of a "SoupChannelList" has been removed.  This is emphasises that the contamination rate should be calculated independently for each channel.  Secondly, the heuristic tools for guiding the choice of genes to use in estimating the contamination have been reworked.  In particular, they will no longer explicitly return gene names in any fashion.  This is to prevent users from using these genes blindly **which they absolutely should not do**.  The `plotMarkerDistribution` function will still suggest genes, but they will only be plotted, not returned directly in any way.  Finally, the default estimation has been switched to estimate one global contamination fraction across all cells in a channel.  In most cases there is little evidence of a strong per-cell difference in contamination rate and even where this does exist, there is seldom the power to calculate it.
+**NOTE:** From v1.3.0 onwards SoupX now includes an option to automatically estimate the contamination fraction.  It is anticipated that this will be the preferred way of using the method for the vast majority of users.  This function (`autoEstCont`) depends on clustering information being provided.  If you are using 10X data mapped with cellranger, this will be loaded automatically, but otherwise it must be provided explicitly by the user using `setClusters`.
 
 ## Installation
 
@@ -24,24 +24,35 @@ If you encounter errors saying `multtest` is unavalibale, please install this ma
 BiocManager::install('multtest')
 ```
 
+## Quickstart
+
+Decontaminate one channel of 10X data mapped with cellranger by running:
+
+```R
+sc = load10X('path/to/your/cellranger/outs/folder')
+sc = autoEstCont(sc)
+out = adjustCounts(sc)
+```
+
+or to manually load decontaminate any other data
+
+```R
+sc = SoupChannel(table_of_droplets,table_of_counts)
+sc = setClusters(sc,cluster_labels)
+sc = autoEstCont(sc)
+out = adjustCounts(sc)
+```
+
+`out` will then contain a corrected matrix to be used in place of the original table of counts in downstream analyses.
+
+
 ## Documentation
 
 The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1101/303727).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/doc/pbmcTutorial.html).  
+A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/pbmcTutorial.html).  
 
 ## Frequently Asked Questions
-
-### I can't find a good set of genes to estimate the contamination fraction.
-
-Generally the gene sets that work best are sets of genes highly specific to a cell type that is present in your data at low frequency.  Think HB genes and erythrocytes, IG genes and B-cells, TPSB2/TPSAB1 and Mast cells, etc.  Before trying anything more esoteric, it is usually a good idea to at least try out the most commonly successful gene sets, particularly HB genes.  If this fails, the `plotMarkerDistribution` function can be used to get further inspiration as described in the vignette.  If all of this yields nothing, we suggest trying a range of corrections to see what effect this has on your downstream analysis.  In our experience most experiments have somewhere between 2-10% contamination.
-
-### `estimateNonExpressingCells` can't find any cells to use to estimate contamiantion.
-
-At this point we assume that you have chosen a set (or sets) of genes to use to estimate the contamination.  The default behaviour (with 10X data) is to look for cells with strong evidence of endogenous expression of these gene sets in all cells, then exclude any cluster with a cell that has strong evidence of endogenous expression.  This conservative behaviour is designed to stop the over-estimation of the contamination fraction, but can sometimes make estimation difficult.  If all clusters have at least one cell that "looks bad" you have 3 options.
-1. Recluster the data to produce more clusters with fewer cells per cluster.  This is the preferred option, but requires more work on the users part.
-2. Make the criteria for declaring a cell to be genuinely expressing a gene set less strict.  This seldom works, as usually when a cell is over the threshold, it's over by a lot.  But in some cases tweaking the values `maximumContamination` and/or `pCut` can yield usable results.
-3. Set `clusters=FALSE` to force `estimateNonExpressingCells` to consider each cell independently.  If you are going to do this, it is worth making the criteria for excluding a cell more permissive by decreasing `maximumContamination` as much as is reasonable.
 
 ### My data still looks contaminated.  Why didn't SoupX work?
 
@@ -51,7 +62,23 @@ The second thing to consider is if the contamination rate estimate looks plausib
 
 Finally, note that SoupX has been designed to try and err on the side of not throwing out real counts.  In some cases it is more important to remove contamination than be sure you've retained all the true counts.  This is particularly true as "over-removal" will not remove all the expression from a truly expressed gene unless you set the over-removal to something extreme.  If this describes your situation you may want to try manually increasing the contamination rate by setting `setContaminationFraction` and seeing if this improves your results.
 
+### I can't find a good set of genes to estimate the contamination fraction.
+
+Generally the gene sets that work best are sets of genes highly specific to a cell type that is present in your data at low frequency.  Think HB genes and erythrocytes, IG genes and B-cells, TPSB2/TPSAB1 and Mast cells, etc.  Before trying anything more esoteric, it is usually a good idea to at least try out the most commonly successful gene sets, particularly HB genes.  If this fails, the `plotMarkerDistribution` function can be used to get further inspiration as described in the vignette.  If all of this yields nothing, we suggest trying a range of corrections to see what effect this has on your downstream analysis.  In our experience most experiments have somewhere between 2-10% contamination.
+
+### `estimateNonExpressingCells` can't find any cells to use to estimate contamination.
+
+At this point we assume that you have chosen a set (or sets) of genes to use to estimate the contamination.  The default behaviour (with 10X data) is to look for cells with strong evidence of endogenous expression of these gene sets in all cells, then exclude any cluster with a cell that has strong evidence of endogenous expression.  This conservative behaviour is designed to stop the over-estimation of the contamination fraction, but can sometimes make estimation difficult.  If all clusters have at least one cell that "looks bad" you have 3 options.
+1. Recluster the data to produce more clusters with fewer cells per cluster.  This is the preferred option, but requires more work on the users part.
+2. Make the criteria for declaring a cell to be genuinely expressing a gene set less strict.  This seldom works, as usually when a cell is over the threshold, it's over by a lot.  But in some cases tweaking the values `maximumContamination` and/or `pCut` can yield usable results.
+3. Set `clusters=FALSE` to force `estimateNonExpressingCells` to consider each cell independently.  If you are going to do this, it is worth making the criteria for excluding a cell more permissive by decreasing `maximumContamination` as much as is reasonable.
+
+
 ## Changelog
+
+### v1.3.6
+
+Addition of `autoEstCont` function to automatically estimate tho contamination fraction without the need to specify a set of genes to use for estimation.  A number of other tweaks and bug fixes.
 
 ### v1.2.1
 
@@ -63,7 +90,7 @@ Review of method, with focus on simplification of code.  Functions that were bei
 
 ### v0.3.0
 
-Now passes R CMD check without warnings or errors.  Added extra vignette on estimating contamination correctly.  Changed the arguments for the interpolateCellContamination function and made montonically decreasing lowess the default interpolation method.  A number of other plotting improvements.
+Now passes R CMD check without warnings or errors.  Added extra vignette on estimating contamination correctly.  Changed the arguments for the interpolateCellContamination function and made monotonically decreasing lowess the default interpolation method.  A number of other plotting improvements.
 
 ### v0.2.3
 

@@ -4,12 +4,14 @@
 \alias{setContaminationFraction}
 \title{Manually set contamination fraction}
 \usage{
-setContaminationFraction(sc, contFrac)
+setContaminationFraction(sc, contFrac, forceAccept = FALSE)
 }
 \arguments{
 \item{sc}{A SoupChannel object.}
 
 \item{contFrac}{The contamination fraction.  Either a constant, in which case the same value is used for all cells, or a named vector, in which case the value is set for each cell.}
+
+\item{forceAccept}{A warning or error is usually returned for extremely high contamination fractions.  Setting this to TRUE will turn these into messages and proceed.}
 }
 \value{
 A modified SoupChannel object for which the contamination (rho) has been set.

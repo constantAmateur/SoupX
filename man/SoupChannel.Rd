@@ -4,25 +4,16 @@
 \alias{SoupChannel}
 \title{Construct a SoupChannel object}
 \usage{
-SoupChannel(
-  tod,
-  toc,
-  metaData = NULL,
-  soupRange = c(0, 10),
-  keepDroplets = FALSE,
-  ...
-)
+SoupChannel(tod, toc, metaData = NULL, soupEstParams = list(), ...)
 }
 \arguments{
 \item{tod}{Table of droplets.  A matrix with columns being each droplet and rows each gene.}
 
 \item{toc}{Table of counts.  Just those columns of \code{tod} that contain cells.}
 
-\item{metaData}{Meta-data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.}
+\item{metaData}{Meta data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.}
 
-\item{soupRange}{Which droplets to estimate soup from. Passed to \code{\link{estimateSoup}}.}
-
-\item{keepDroplets}{Should we keep the full table of droplets?  Passed to \code{\link{estimateSoup}}.}
+\item{soupEstParams}{Pramaters passed to \code{\link{estimateSoup}}.}
 
 \item{...}{Any other named parameters to store.}
 }

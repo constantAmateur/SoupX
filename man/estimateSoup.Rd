@@ -4,7 +4,7 @@
 \alias{estimateSoup}
 \title{Get expression profile of soup}
 \usage{
-estimateSoup(sc, soupRange = c(0, 10), keepDroplets = FALSE)
+estimateSoup(sc, soupRange = c(0, 100), keepDroplets = FALSE)
 }
 \arguments{
 \item{sc}{A \code{SoupChannel} object.}

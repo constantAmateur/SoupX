@@ -19,9 +19,10 @@
 #' @param verbose Print best estimate.
 #' @param cellSpecificEstimates Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.
 #' @param stanParams Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.
+#' @param forceAccept Passed to \code{\link{setContaminationFraction}}.
 #' @return A modified version of \code{sc} with estimates of the contamination (rho) added to the metaData table.
 #' @importFrom stats coef confint glm poisson quantile
-calculateContaminationFraction = function(sc,nonExpressedGeneList,useToEst,verbose=TRUE,cellSpecificEstimates=FALSE,stanParams=list(chains=1,warmup=8000,iter=24000,cores=1)){
+calculateContaminationFraction = function(sc,nonExpressedGeneList,useToEst,verbose=TRUE,cellSpecificEstimates=FALSE,stanParams=list(chains=1,warmup=8000,iter=24000,cores=1),forceAccept=FALSE){
   if(!is(sc,'SoupChannel')){
     stop("sc must be a SoupChannel object")
   }
@@ -109,14 +110,14 @@ generated quantities{
     ee = rstan::extract(sc$fit)
     #Construct cell specific estimates
     ee = as.numeric(ee$rho) + as.matrix(ee$rho_cells)
-    sc$metaData$rho = exp(colMeans(ee))
+    sc = setContaminationFraction(sc,setNames(exp(colMeans(ee)),rownames(sc$metaData)),forceAccept=forceAccept)
     sc$metaData$rhoLow = exp(apply(ee,2,quantile,0.025))
     sc$metaData$rhoHigh = exp(apply(ee,2,quantile,0.975))
   }else{
     #Fit Poisson GLM with log-link to get global rho
     sc$fit = glm(counts ~ 1,family=poisson(),offset=log(expSoupCnts),data=df)
     #Finally, add it to the meta-data
-    sc$metaData$rho = exp(coef(sc$fit))
+    sc = setContaminationFraction(sc,exp(coef(sc$fit)),forceAccept=forceAccept)
     tmp=suppressMessages(confint(sc$fit))
     sc$metaData$rhoLow = exp(tmp[1])
     sc$metaData$rhoHigh = exp(tmp[2])

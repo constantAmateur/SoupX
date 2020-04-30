@@ -4,7 +4,13 @@
 \alias{plotMarkerDistribution}
 \title{Plots the distribution of the observed to expected expression for marker genes}
 \usage{
-plotMarkerDistribution(sc, nonExpressedGeneList, maxCells = 150, ...)
+plotMarkerDistribution(
+  sc,
+  nonExpressedGeneList,
+  maxCells = 150,
+  tfidfMin = 1,
+  ...
+)
 }
 \arguments{
 \item{sc}{A SoupChannel object.}
@@ -13,7 +19,9 @@ plotMarkerDistribution(sc, nonExpressedGeneList, maxCells = 150, ...)
 
 \item{maxCells}{Randomly plot only this many cells to prevent over-crowding.}
 
-\item{...}{Extra parameters passed to \code{\link{estimateNonExpressingCells}}.}
+\item{tfidfMin}{Minimum specficity cut-off used if finding marker genes (see \code{\link{quickMarkers}}).}
+
+\item{...}{Passed to \code{\link{estimateNonExpressingCells}}}
 }
 \value{
 A ggplot2 object containing the plot.
@@ -26,5 +34,5 @@ This plot is a useful diagnostic for the assumption that a list of genes is non-
 
 The red line shows the global estimate of the contamination for each group of markers.  This is usually lower than the low mode of the distribution as there will typically be a non-negligible number of cells with 0 observed counts (and hence -infinity log ratio).
 
-If nonExpressedGeneList is missing, this function will plot the distribution for the most highly expressed genes in the soup, excluding those whose distribution makes them unlikely to be useful. This is meant only as a heuristic, which can hopefully provide some inspiration as to a class of genes to use to estimation the contamination for your experiment.  It is **NOT** meant to be used blindly or algorithmically.  That is, do not feed this list of genes into \code{\link{calculateContaminationFraction}} without any manual consideration or filtering as this *will over-estimate your contamination* (sometime by a large amount).  For this reason, these gene names are not returned by the function.
+If nonExpressedGeneList is missing, this function will try and find genes that are very specific to different clusters, as these are often the most useful in estimating the contamination fraction.   This is meant only as a heuristic, which can hopefully provide some inspiration as to a class of genes to use to estimation the contamination for your experiment.  Please do **NOT** blindly use the top N genes found in this way to estimate the contamination.  That is, do not feed this list of genes into \code{\link{calculateContaminationFraction}} without any manual consideration or filtering as this *will over-estimate your contamination* (often by a large amount).  For this reason, these gene names are not returned by the function.
 }
