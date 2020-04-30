@@ -50,7 +50,7 @@ out = adjustCounts(sc)
 
 The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1101/303727).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://cdn.rawgit.com/constantAmateur/SoupX/master/inst/doc/pbmcTutorial.html).  
+A detailed vignette is provided with the package and can be viewed [here](https://rawcdn.githack.com/constantAmateur/SoupX/650f7fa30b6c985486953b9ef8858c17fe7df68a/inst/doc/pbmcTutorial.html).  
 
 ## Frequently Asked Questions
 
