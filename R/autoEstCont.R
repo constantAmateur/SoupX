@@ -15,6 +15,7 @@
 #' @param topMarkers A data.frame giving marker genes.  Must be sorted by decreasing specificity of marker and include a column 'gene' that contains the gene name.  If set to NULL, markers are estimated using \code{\link{quickMarkers}}.
 #' @param tfidfMin Minimum value of tfidf to accept for a marker gene.
 #' @param soupQuantile Only use genes that are at or above this expression quantile in the soup.  This prevents inaccurate estimates due to using genes with poorly constrained contribution to the background.
+#' @param maxMarkers If we have heaps of good markers, keep only the best \code{maxMarkers} of them.
 #' @param maximumContamination What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.
 #' @param rhoMaxFDR False discovery rate passed to \code{\link{estimateNonExpressingCells}}, to test if rho is less than \code{maximumContamination}.
 #' @param priorRho Mode of gamma distribution prior on contamination fraction.
@@ -26,7 +27,7 @@
 #' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
 #' @importFrom stats dgamma qgamma 
 #' @importFrom graphics abline lines legend plot
-autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){
+autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMarkers=100,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){
   if(!'clusters' %in% colnames(sc$metaData))
     stop("Clustering information must be supplied, run setClusters first.")
   #First collapse by cluster
@@ -57,9 +58,10 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maximum
   #Filter to include only those that exist in soup 
   tgts = rownames(soupProf)[soupProf$est>soupMin]
   #And get the ones that pass our tfidf cut-off
-  tgts = mrks$gene[mrks$gene %in% tgts]
+  filtPass = mrks[mrks$gene %in% tgts,]
+  tgts = head(filtPass$gene,n=maxMarkers)
   if(verbose)
-    message(sprintf("%d genes passed tf-idf cut-off and %d soup quantile filter.",nrow(mrks),length(tgts)))
+    message(sprintf("%d genes passed tf-idf cut-off and %d soup quantile filter.  Taking the top %d.",nrow(mrks),nrow(filtPass),length(tgts)))
   #mrks = mrks[mrks$gene %in% tgts,]
   #tgts = head(mrks$gene,nMarks)
   if(length(tgts)==0){
