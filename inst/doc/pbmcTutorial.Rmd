@@ -1,7 +1,7 @@
 ---
 title: "SoupX PBMC Demonstration"
 author: "Matthew Daniel Young"
-date: "`r Sys.Date()`"
+date: "2020-05-01"
 fig_width: 8
 fig_height: 6
 output: 
@@ -54,7 +54,7 @@ sc = autoEstCont(sc)
 out = adjustCounts(sc)
 ```
 
-which would produce a new matrix that has had the contaminating reads removed.  This can then be used in any downstream analysis in place of the original matrix.  Note that by default `adjustCounts` will return non-integer counts.  If you require integers for downstream processing either pass `out` through `round` or set `roundToInt=TRUE` when running `adjustCounts`.
+which would produce a new matrix that has had the contaminating reads removed.  This can then be used in any downstream analysis in place of the original matrix.  Note that by default `adjustCounts` will return non-integer counts.  If you require integers for downstream processing either pass `out` through ` round` or set ` roundToInt=TRUE` when running `adjustCounts`.
 
 # Getting started
 
@@ -377,7 +377,7 @@ The recommended mode of operation will produce a non-integer (although still spa
 
 This process can be quite slow when clustering information is provided.  On multi-core machines, this estimation can be sped up by setting `nCores` to the number of clusters to process in parallel.
 
-You should not change the `method` parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting `roundToInt=TRUE`, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
+You should not change the `method` parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting ` roundToInt=TRUE`, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
 
 ### Investigating changes in expression
 

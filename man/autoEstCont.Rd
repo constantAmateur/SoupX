@@ -9,6 +9,7 @@ autoEstCont(
   topMarkers = NULL,
   tfidfMin = 1,
   soupQuantile = 0.9,
+  maxMarkers = 100,
   maximumContamination = 0.8,
   rhoMaxFDR = 0.2,
   priorRho = 0.05,
@@ -26,6 +27,8 @@ autoEstCont(
 \item{tfidfMin}{Minimum value of tfidf to accept for a marker gene.}
 
 \item{soupQuantile}{Only use genes that are at or above this expression quantile in the soup.  This prevents inaccurate estimates due to using genes with poorly constrained contribution to the background.}
+
+\item{maxMarkers}{If we have heaps of good markers, keep only the best \code{maxMarkers} of them.}
 
 \item{maximumContamination}{What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.}
 

@@ -1,7 +1,7 @@
 ---
 title: "SoupX PBMC Demonstration"
 author: "Matthew Daniel Young"
-date: "`r Sys.Date()`"
+date: "2020-05-01"
 fig_width: 8
 fig_height: 6
 output: 
