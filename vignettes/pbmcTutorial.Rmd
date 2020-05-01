@@ -54,11 +54,11 @@ sc = autoEstCont(sc)
 out = adjustCounts(sc)
 ```
 
-which would produce a new matrix that has had the contaminating reads removed.  This can then be used in any downstream analysis in place of the original matrix.  Note that by default `adjustCounts` will return non-integer counts.  If you require integers for downstream processing either pass `out` through ` round` or set ` roundToInt=TRUE` when running `adjustCounts`.
+which would produce a new matrix that has had the contaminating reads removed.  This can then be used in any downstream analysis in place of the original matrix.  Note that by default adjustCounts will return non-integer counts.  If you require integers for downstream processing either pass out through round or set roundToInt=TRUE when running adjustCounts.
 
 # Getting started
 
-You install this package like any other R package.  The simplest way is to use the `devtools` `install_github` function as follows:
+You install this package like any other R package.  The simplest way is to use the devtools install_github function as follows:
 
 ```{r install, eval=FALSE}
 devtools::install_github("constantAmateur/SoupX")
@@ -91,7 +91,7 @@ dataDirs = c('SoupX_pbmc4k_demo/')
 sc = load10X(dataDirs)
 ```
 
-This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  The PBMC data is bundled with SoupX as a matrix and some annotation files.  Creating a `SoupChannel` object from a matrix can be done by running,
+This will load the 10X data into a SoupChannel object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  The PBMC data is bundled with SoupX as a matrix and some annotation files.  Creating a SoupChannel object from a matrix can be done by running,
 
 ```{r load_data_manual}
 data(PBMC)
@@ -100,20 +100,20 @@ sc = SoupChannel(PBMC_tod,PBMC_tod[,PBMC_cellBarcodes])
 
 ## Profiling the soup
 
-Having loaded our data, the first thing to do is to estimate what the expression profile of the soup looks like.  This is actually done for us automatically by the object construction function `SoupChannel` called by `load10X`.  Generally, we'd never really want to explicitly make this call, but just so it's explicit that this is the first part of the method we will show how to do so here.
+Having loaded our data, the first thing to do is to estimate what the expression profile of the soup looks like.  This is actually done for us automatically by the object construction function SoupChannel called by load10X.  Generally, we'd never really want to explicitly make this call, but just so it's explicit that this is the first part of the method we will show how to do so here.
 
 ```{r estimateSoup, eval=FALSE}
 sc = load10X(dataDirs,keepDroplets=TRUE)
 sc = estimateSoup(sc)
 ```
 
-Which modifies the `SoupChannel` object to add estimates of the soup expression profile.
+Which modifies the SoupChannel object to add estimates of the soup expression profile.
 
-Note that we had to reload the `sc` object to do this.  By default, when the soup is estimated the table of droplets `tod` is dropped to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
+Note that we had to reload the sc object to do this.  By default, when the soup is estimated the table of droplets tod is dropped to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
 
 ## Adding extra meta data to the SoupChannel object
 
-We have some extra meta data that it is essential we include in our `SoupChannel` object.  In general you can add any meta data by providing a data.frame with row names equal to the column names of the `toc` when building the `SoupChannel` object.  Like this,
+We have some extra meta data that it is essential we include in our SoupChannel object.  In general you can add any meta data by providing a data.frame with row names equal to the column names of the toc when building the SoupChannel object.  Like this,
 
 ```{r load_data_with_mDat, eval=FALSE}
 sc = SoupChannel(PBMC_tod,PBMC_tod[,PBMC_cellBarcodes],metaData=PBMC_DR)
@@ -131,7 +131,7 @@ It can also be very useful to be able to visualise our data by providing some ki
 sc = setDR(sc,PBMC_DR)
 ```
 
-This is usually not needed when using the `load10X` function as the cellranger produced values are automatically loaded.
+This is usually not needed when using the load10X function as the cellranger produced values are automatically loaded.
 
 ## Visual sanity checks
 
@@ -150,9 +150,9 @@ gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
 plot(gg)
 ```
 
-SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else.  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data (see `?PBMC_DR`).
+SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else.  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data (see ?PBMC).
 
-Suppose that we are interested in the expression of the gene IGKC, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express IGKC by extracting the counts for it from the `SoupChannel` object.
+Suppose that we are interested in the expression of the gene IGKC, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express IGKC by extracting the counts for it from the SoupChannel object.
 
 ```{r plot_IGKC}
 PBMC_DR$IGKC = sc$toc['IGKC',rownames(PBMC_DR)]
@@ -163,20 +163,20 @@ plot(gg)
 
 Wow!  We know from prior annotation that the cells in the cluster at the bottom are B-cells so should express IGKC.  But the cluster on the right is a T-cell population.  Taken at face value, we appear to have identified a scattered population of T-cells that are producing antibodies!  Start preparing the nature paper!
 
-Before we get too carried away though, perhaps it's worth checking if the expression of IGKC in these scattered cells is more than we would expect by chance from the soup.  To really answer this properly, we need to know how much contamination is present in each cell, which will be the focus of the next sections.  But we can get a rough idea just by calculating how many counts we would expect for IGKC in each cell, by assuming that cell contained nothing but soup.  The function `soupMarkerMap` allows you to visualise the ratio of observed counts for a gene (or set of genes) to this expectation value.  Let's try it out,
+Before we get too carried away though, perhaps it's worth checking if the expression of IGKC in these scattered cells is more than we would expect by chance from the soup.  To really answer this properly, we need to know how much contamination is present in each cell, which will be the focus of the next sections.  But we can get a rough idea just by calculating how many counts we would expect for IGKC in each cell, by assuming that cell contained nothing but soup.  The function soupMarkerMap allows you to visualise the ratio of observed counts for a gene (or set of genes) to this expectation value.  Let's try it out,
 
 ```{r sanity_check}
 gg = plotMarkerMap(sc,'IGKC')
 plot(gg)
 ```
 
-There is no need to pass the tSNE coordinates to this function as we stored them in the `sc` object when we ran `setDR` above.  Looking at the resulting plot, we see that the cells in the B-cell cluster have a reddish colour, indicating that they are expressed far more than we would expect by chance, even if the cell was nothing but background.  Our paradigm changing, antibody producing T-cells do not fare so well.  They all have a decidedly bluish hue, indicating that is completely plausible that the expression of IGKC in these cells is due to contamination from the soup.  Those cells that are shown as dots have zero expression for IGKC.
+There is no need to pass the tSNE coordinates to this function as we stored them in the sc object when we ran setDR above.  Looking at the resulting plot, we see that the cells in the B-cell cluster have a reddish colour, indicating that they are expressed far more than we would expect by chance, even if the cell was nothing but background.  Our paradigm changing, antibody producing T-cells do not fare so well.  They all have a decidedly bluish hue, indicating that is completely plausible that the expression of IGKC in these cells is due to contamination from the soup.  Those cells that are shown as dots have zero expression for IGKC.
 
 We have made these plots assuming each droplet contains nothing but background contamination, which is obviously not true.  Nevertheless, this can still be a useful quick and easy sanity check to perform.
 
 ## Estimating the contamination fraction
 
-Probably the most difficult part of using SoupX is accurately estimating the level of background contamination (represented as rho) in each channel.  There are two ways to do this: using the automatic `autoEstCont` method, or manually providing a list of "non expressed genes".  This vignette will demonstrate both methods, but we anticipate that the automatic method will be used in most circumstances.  Before that we will describe the idea that underpins both approaches; identifying genes that are not expressed by some cells in our data and the expression that we observe for these genes in these cells must be due to contamination.
+Probably the most difficult part of using SoupX is accurately estimating the level of background contamination (represented as rho) in each channel.  There are two ways to do this: using the automatic autoEstCont method, or manually providing a list of "non expressed genes".  This vignette will demonstrate both methods, but we anticipate that the automatic method will be used in most circumstances.  Before that we will describe the idea that underpins both approaches; identifying genes that are not expressed by some cells in our data and the expression that we observe for these genes in these cells must be due to contamination.
 
 This is the most challenging part of the method to understand and we have included a lot of detail here. But successfully applying SoupX does not depend on understanding all these details.  The key thing to understand is that the contamination fraction estimate is the fraction of your data that will be discarded.  If this value is set too low, your "corrected" data will potentially still be highly contaminated.  If you set it too high, you will discard real data, although there are good reasons to want to do this at times (see section below).  If the contamination fraction is in the right ball park, SoupX will remove most of the contamination.  It will generally not matter if this number if off by a few percent.
 
@@ -218,7 +218,7 @@ Now obviously the method doesn't know anything about the biology and we haven't 
 
 But absent this information, the trick is to use the expression level of these genes in each cell to identify when not to use a gene to estimate the contamination fraction.  This is why the best genes for estimating the contamination fraction are those that are highly expressed in the cells that do use them (like HB or IG genes).  Then we can be confident that observing a low level of expression of a set of genes in a cell is due to background contamination, not a low level of mRNA production by the cell.
 
-Given a set of genes that we suspect may be useful, the function `plotMarkerDistribution` can be used to visualise how this gene's expression is distributed across cells. To continue our example:
+Given a set of genes that we suspect may be useful, the function plotMarkerDistribution can be used to visualise how this gene's expression is distributed across cells. To continue our example:
 
 Cell 1 - The measured expression of HBB and HBA2 is 10 times what we'd expect if the droplet was filled with soup, so the method will not use either of these genes to calculate rho. On the other hand IGKC is about .05 times the value we'd get for pure soup, so that is used.
 
@@ -252,13 +252,13 @@ Estimating the contamination fraction using the automated is as simple as runnin
 sc = autoEstCont(sc)
 ```
 
-This will produce a mysterious looking plot with two distributions and a red line.  To understand this plot, we need to understand a little bit about what `autoEstCont` is doing.  The basic idea is that it tries to aggregate evidence from many plausible estimators of rho and assigns the true contamination fraction to the one that occurs the most often.  The reason this works is that incorrect estimates should have no preferred value, while true estimates should cluster around the same value.  The solid curve shows something like the frequency of different estimates of rho, with a red line indicating its peak, which gives the estimate of rho.  If you are using the default values for `priorRho` and `priorRhoStdDev` (which you probably should be) you can ignore the dashed line.
+This will produce a mysterious looking plot with two distributions and a red line.  To understand this plot, we need to understand a little bit about what autoEstCont is doing.  The basic idea is that it tries to aggregate evidence from many plausible estimators of rho and assigns the true contamination fraction to the one that occurs the most often.  The reason this works is that incorrect estimates should have no preferred value, while true estimates should cluster around the same value.  The solid curve shows something like the frequency of different estimates of rho, with a red line indicating its peak, which gives the estimate of rho.  If you are using the default values for priorRho and priorRhoStdDev (which you probably should be) you can ignore the dashed line.
 
-For those wanting a more detailed explanation, here is what happens.  First the function tries to identify genes that are very specific to one cluster of cells (using `quickMarkers`).  The determination of how specific is "very specific" is based on the gene's tf-idf value for the cluster it is specific to.  See the `quickMarkers` help or [this](https://constantamateur.github.io/2020-04-10-scDE/) for an explanation of what this means.  The default of `tfidfMin=1` demands that genes by reasonably specific, so if you are getting a low number of genes for estimation you can consider decreasing this value.  This list is further reduced by keeping only genes that are "highly expressed" in the soup (as these give more accurate estimates of rho), where highly expressed is controlled by `soupQuantile`.  The default value sounds permissive, but in practice almost all genes with tf-idf over 1 tend to pass it.
+For those wanting a more detailed explanation, here is what happens.  First the function tries to identify genes that are very specific to one cluster of cells (using quickMarkers).  The determination of how specific is "very specific" is based on the gene's tf-idf value for the cluster it is specific to.  See the quickMarkers help or [this](https://constantamateur.github.io/2020-04-10-scDE/) for an explanation of what this means.  The default of tfidfMin=1 demands that genes by reasonably specific, so if you are getting a low number of genes for estimation you can consider decreasing this value.  This list is further reduced by keeping only genes that are "highly expressed" in the soup (as these give more accurate estimates of rho), where highly expressed is controlled by soupQuantile.  The default value sounds permissive, but in practice almost all genes with tf-idf over 1 tend to pass it.
 
-Each of these genes is used to independently estimate rho in the usual way.  That is, the clusters for which the gene can be confidently said to not be expressed (as determined by `estimateNonExpressingCells`) are used to estimate rho.  We could then just create a histogram of these estimates and pick the most common value.  This would work reasonably well, but we can do better by considering that each estimate has uncertainty associated with it.  So what we do instead is calculate the posterior distribution of the contamination fraction for each gene/cluster pair and determine the best estimate of rho by finding the peak of the average across all these distributions.  This is what is shown as the solid curve in the above plot.
+Each of these genes is used to independently estimate rho in the usual way.  That is, the clusters for which the gene can be confidently said to not be expressed (as determined by estimateNonExpressingCells) are used to estimate rho.  We could then just create a histogram of these estimates and pick the most common value.  This would work reasonably well, but we can do better by considering that each estimate has uncertainty associated with it.  So what we do instead is calculate the posterior distribution of the contamination fraction for each gene/cluster pair and determine the best estimate of rho by finding the peak of the average across all these distributions.  This is what is shown as the solid curve in the above plot.
 
-The posterior distribution is calculated using a Poisson likelihood with a gamma distribution prior, parametrised by its mean `priorRho` and standard deviation `priorRhoStdDev`.  The dotted line in the above plot shows the prior distribution.  The default parameters have been calibrated to be fairly non-specific with a slight preference towards values of rho in the 0% to 10% range which is most commonly seen for fresh (i.e. not nuclear) single cell experiments.
+The posterior distribution is calculated using a Poisson likelihood with a gamma distribution prior, parametrised by its mean priorRho and standard deviation priorRhoStdDev.  The dotted line in the above plot shows the prior distribution.  The default parameters have been calibrated to be fairly non-specific with a slight preference towards values of rho in the 0% to 10% range which is most commonly seen for fresh (i.e. not nuclear) single cell experiments.
 
 The default values place only a very weak constraint, as can be seen by setting a uniform prior
 
@@ -290,13 +290,13 @@ head(sc$soupProfile[order(sc$soupProfile$est,decreasing=TRUE),],n=20)
 
 Unfortunately most of the most highly expressed genes in this case are ubiquitously expressed (RPL/RPS genes or mitochondrial genes).  So we need some further criteria to aid our selection process.
 
-The function `plotMarkerDistribution` is used to visualise the distribution of expression (relative to what would be expected were each cell pure background) across all cells in the data set.  When no geneset is provided, the function will try and guess which genes might be useful.  
+The function plotMarkerDistribution is used to visualise the distribution of expression (relative to what would be expected were each cell pure background) across all cells in the data set.  When no geneset is provided, the function will try and guess which genes might be useful.  
 
 ```{r inferNonExpressed}
 plotMarkerDistribution(sc)
 ```
 
-The plot shows the distribution of log10 ratios of observed counts to expected if the cell contained nothing but soup.  A guess at which cells definitely express each gene is made and the background contamination is calculated.  The red line shows the global estimate (i.e., assuming the same contamination fraction for all cells) of the contamination fraction using just that gene.  This "guessing" is done using the `quickMarkers` function to find marker genes of each cluster (see "Automatic method" section).  As such, it will fail if no clusters have been provided.
+The plot shows the distribution of log10 ratios of observed counts to expected if the cell contained nothing but soup.  A guess at which cells definitely express each gene is made and the background contamination is calculated.  The red line shows the global estimate (i.e., assuming the same contamination fraction for all cells) of the contamination fraction using just that gene.  This "guessing" is done using the quickMarkers function to find marker genes of each cluster (see "Automatic method" section).  As such, it will fail if no clusters have been provided.
 
 Note that this is a heuristic set of genes that is intended to help develop your biological intuition.  It absolutely **must not** be used to automatically select a set of genes to estimate the background contamination fraction.  For this reason, the function will not return a list of genes.  **If you select the top N genes from this list and use those to estimate the contamination, you will over-estimate the contamination fraction!**
 
@@ -304,7 +304,7 @@ Note too that the decision of what genes to use to estimate the contamination mu
 
 Looking at this plot, we observe that there are two immunoglobulin genes from the constant region (IGKC and IGHM) present and they give a consistent estimate of the contamination fraction of around 10% (-1 on the log10 scale).  As we know that it is reasonable to assume that immunoglobulin genes are expressed only in B-cells, we will decide to use their expression in non B-cells to estimate the contamination fraction.
 
-But there's no reason to just use the genes `inferNonExpressedGenes` flagged for us.  So let's define a list of all the constant immunoglobulin genes, 
+But there's no reason to just use the genes inferNonExpressedGenes flagged for us.  So let's define a list of all the constant immunoglobulin genes, 
 
 ```{r igGenes}
 igGenes = c('IGHA1','IGHA2','IGHG1','IGHG2','IGHG3','IGHG4','IGHD','IGHE','IGHM',
@@ -328,7 +328,7 @@ Which produces a matrix indicating which cells (rows) should use which sets of g
 plotMarkerMap(sc,geneSet=igGenes,useToEst=useToEst)
 ```
 
-You'll notice that above we set `clusters=FALSE` which stops SoupX from using clustering information.  We provided this information earlier when we ran `setClusters`.  Let's see how things change if we let clustering information be used.
+You'll notice that above we set clusters=FALSE which stops SoupX from using clustering information.  We provided this information earlier when we ran setClusters.  Let's see how things change if we let clustering information be used.
 
 ```{r calcNullMatrixWithClustering}
 useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes))
@@ -337,37 +337,37 @@ plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
 
 As you can see the set of cells to be used for estimation with the igGenes set has decreased.  In this case it makes not much difference, but in general it is better to provide clustering and be conservative.
 
-It is worth noting one final thing about the specification of nonExpressedGeneList.  It seems odd that we have specified `nonExpressedGeneList = list(IG=igGenes)` rather than just `nonExpressedGeneList = igGenes`.  This is because nonExpressedGeneList expects sets of genes that are biologically related and expected to be present or not present as a set (e.g. IG genes, HB genes).
+It is worth noting one final thing about the specification of nonExpressedGeneList.  It seems odd that we have specified nonExpressedGeneList = list(IG=igGenes) instead of just nonExpressedGeneList = igGenes.  This is because nonExpressedGeneList expects sets of genes that are biologically related and expected to be present or not present as a set (e.g. IG genes, HB genes).
 
 
 #### Calculating the contamination fraction
 
-At this point all the hard work has been done.  To estimate the contamination fraction you need only pass your set of genes and which cells in which to use those sets of genes to `calculateContaminationFraction`.
+At this point all the hard work has been done.  To estimate the contamination fraction you need only pass your set of genes and which cells in which to use those sets of genes to calculateContaminationFraction.
 
 ```{r calcContamination}
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 ```
 
-This function will modify the `metaData` table of `sc` to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction of $\sim 5%%$, compared to $\sim 6%%$ for the automatic method.
+This function will modify the metaData table of sc to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction of $\sim 5%%$, compared to $\sim 6%%$ for the automatic method.
 
 ```{r viewCont}
 head(sc$metaData)
 ```
 
-In 99% of cases the default values of `calculateContaminationFraction` are what you will want.  However, in rare circumstances where you have lots of good genes to estimate contamination you way want to estimate the contamination not globally (the default), but separately for each cell.  Most of the time there is no point in doing this as the contamination fraction does not vary greatly across a channel.  We can do cell specific contamination estimation as follows,
+In 99% of cases the default values of calculateContaminationFraction are what you will want.  However, in rare circumstances where you have lots of good genes to estimate contamination you way want to estimate the contamination not globally (the default), but separately for each cell.  Most of the time there is no point in doing this as the contamination fraction does not vary greatly across a channel.  We can do cell specific contamination estimation as follows,
 
 ```{r cellSpecificRho,eval=FALSE}
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
 quantile(sc$metaData$rho)
 ```
 
-This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `sc$fit` (in both cell dependent and global estimation).
+This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in sc\$fit (in both cell dependent and global estimation).
 
 ## Correcting expression profile
 
 We have now calculated or set the contamination fraction for each cell and would like to use this to remove the contamination from the original count matrix.  As with estimating the contamination, this procedure is made much more robust by providing clustering information.  This is because there is much more power to separate true expression from contaminating expression when counts are aggregated into clusters.  Furthermore, the process of redistributing corrected counts from the cluster level to individual cells automatically corrects for variation in the cell specific contamination rate (see the paper for details).
 
-We have already loaded clustering information into our `sc` object with `setClusters`, which will be used by default.  So we can just run.
+We have already loaded clustering information into our sc object with setClusters, which will be used by default.  So we can just run.
 
 ```{r decontaminate}
 out = adjustCounts(sc)
@@ -375,9 +375,9 @@ out = adjustCounts(sc)
 
 The recommended mode of operation will produce a non-integer (although still sparse) matrix where the original counts have been corrected for background expression.  See the help, code, and paper for details of how this is done.  
 
-This process can be quite slow when clustering information is provided.  On multi-core machines, this estimation can be sped up by setting `nCores` to the number of clusters to process in parallel.
+This process can be quite slow when clustering information is provided.  On multi-core machines, this estimation can be sped up by setting nCores to the number of clusters to process in parallel.
 
-You should not change the `method` parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting ` roundToInt=TRUE`, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
+You should not change the method parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting roundToInt=TRUE, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
 
 ### Investigating changes in expression
 
@@ -403,7 +403,7 @@ we find genes associated with metabolism and translation.  This is often the cas
 
 ### Visualising expression distribution
 
-Way back at the start, we did a quick visualisation to look at how the ratio of IGKC expression to pure soup was distributed.  Now that we've corrected our data, we can see how that compares to our corrected data.  The function `plotChangeMap` can help us with this.  By default it plots the fraction of expression in each cell that has been deemed to be soup and removed.
+Way back at the start, we did a quick visualisation to look at how the ratio of IGKC expression to pure soup was distributed.  Now that we've corrected our data, we can see how that compares to our corrected data.  The function plotChangeMap can help us with this.  By default it plots the fraction of expression in each cell that has been deemed to be soup and removed.
 
 ```{r IGKC_change}
 plotChangeMap(sc,out,'IGKC')
