@@ -348,7 +348,7 @@ At this point all the hard work has been done.  To estimate the contamination fr
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 ```
 
-This function will modify the metaData table of sc to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction of $\sim 5%%$, compared to $\sim 6%%$ for the automatic method.
+This function will modify the metaData table of sc to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction of $\sim 5$%, compared to $\sim 6$% for the automatic method.
 
 ```{r viewCont}
 head(sc$metaData)
@@ -374,8 +374,6 @@ out = adjustCounts(sc)
 ```
 
 The recommended mode of operation will produce a non-integer (although still sparse) matrix where the original counts have been corrected for background expression.  See the help, code, and paper for details of how this is done.  
-
-This process can be quite slow when clustering information is provided.  On multi-core machines, this estimation can be sped up by setting nCores to the number of clusters to process in parallel.
 
 You should not change the method parameter unless you have a strong reason to do so.  When you need integer counts for downstream analyses, setting roundToInt=TRUE, stochastically rounds up with probability equal to the fraction part of the number.  For example, if a cell has 1.2 corrected counts it will be assigned a value of 1 80% of the time and 2 20% of the time.
 

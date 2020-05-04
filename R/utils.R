@@ -7,21 +7,15 @@
 #' @param clusters Mapping from cells to clusters.
 #' @param cellWeights Weighting to give to each cell when distributing counts.  This would usually be set to the number of expected soup counts for each cell.
 #' @param verbose Integer giving level of verbosity.  0 = silence, 1 = Basic information, 2 = Very chatty, 3 = Debug.
-#' @param nCores Number of cores to use.  Defaults to all cores.
-#' @param ... Passed to mclapply
 #' @return A matrix of genes (rows) by cells (columns) giving the number of soup counts estimated for each cell.  Non-integer values possible.
-#' @importFrom parallel mclapply
-expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose=1,nCores=getOption('mc.cores',1),...){
+expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose=1){
   ws = cellWeights
   #Do one cluster at a time
   if(verbose>0)
     message(sprintf("Expanding counts from %d clusters to %d cells.",ncol(clustSoupCnts),ncol(cellObsCnts)))
-  #Do the expansion if needed
-  out = mclapply(seq(ncol(clustSoupCnts)),
-                 mc.cores = nCores,
-                 FUN = function(j) {
-    if(nCores>1 & verbose>1)
-      verbose=1
+  #lapply instead of loop is a hold-over from when mclapply was an option
+  out = lapply(seq(ncol(clustSoupCnts)),
+                 function(j) {
     if(verbose>1)
       message(sprintf("Expanding cluster %s",colnames(clustSoupCnts)[j]))
     #Which cells
@@ -44,44 +38,13 @@ expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose
     #Case 2 is dealt with by construction
     #Get set of genes for cases 3 and 4
     wGenes = which(nSoup>0 & nSoup<rowSums(lims))
-    #And one gene at a time
-    if(length(wGenes)>0 & verbose>1)
-      pb = initProgBar(1,length(wGenes))
-    ii=1
-    for(i in wGenes){
-      ii=ii+1
-      #Initialise
-      toDo = nSoup[i]
-      wLocal = which(expCnts@i+1 ==i)
-      outLocal = rep(0,length(wLocal))
-      tgtLocal = seq_along(wLocal)
-      limLocal = expCnts@x[wLocal]
-      weightsLocal = ww[expCnts@j[wLocal]+1]
-      while(TRUE){
-        #Adjust guess
-        outLocal[tgtLocal] = outLocal[tgtLocal] + toDo*ww[tgtLocal]/sum(ww[tgtLocal])
-        #Update counter of remaining allocation budget
-        w = outLocal[tgtLocal]-limLocal[tgtLocal]
-        toDo = sum(w[w>0])
-        if(verbose>2)
-          message(sprintf("%d at or above limit, with %g unallocated",sum(w>0),toDo))
-        if(toDo==0)
-          break
-        #If we have work to do, truncate.
-        outLocal[tgtLocal[w>0]] = limLocal[tgtLocal[w>0]]
-        #Update definition of local
-        tgtLocal = tgtLocal[w<0]
-      }
-      expCnts@x[wLocal] = outLocal
-      if(verbose>1)
-        setTxtProgressBar(pb,ii)
-    }
-    if(length(wGenes)>0 & verbose>1)
-      close(pb)
+    #And deal with them as appropriate.  Save time by looking only at non-zero entries
+    w = which((expCnts@i+1) %in% wGenes)
+    w = split(w,expCnts@i[w]+1)
+    tmp = lapply(w,function(e) alloc(nSoup[expCnts@i[e[1]]+1],expCnts@x[e],ww[expCnts@j[e]+1]))
+    expCnts@x[unlist(w,use.names=FALSE)] = unlist(tmp,use.names=FALSE)
     return(expCnts)
-  },...)
-  ##  out[[j]] = expCnts
-  ##}
+  })
   out = do.call(cbind,out)
   out = out[,colnames(cellObsCnts)]
   return(out)
@@ -100,4 +63,37 @@ initProgBar = function(min,max,...){
   message('|----|----|----|----|----|----|----|----|----|----|')
   pb=txtProgressBar(min=min,max=max,style=1,width=51,char='*',...)
   return(pb)
+}
+
+#' Allocate values to "buckets" subject to weights and constraints
+#'
+#' Allocates \code{tgt} of something to \code{length(bucketLims)} different "buckets" subject to the constraint that each bucket has a maximum value of \code{bucketLims} that cannot be exceeded.  By default counts are distributed equally between buckets, but weights can be provided using \code{ws} to have the redistribution prefer certain buckets over others.
+#'
+#' @param tgt Value to distribute between buckets.
+#' @param bucketLims The maximum value that each bucket can take.  Must be a vector of positive values.
+#' @param ws Weights to be used for each bucket.  Default value makes all buckets equally likely.
+#' @return A vector of the same length as \code{bucketLims} containing values distributed into buckets.
+alloc = function(tgt,bucketLims,ws=rep(1/length(bucketLims),length(bucketLims))){
+  #Normalise weights
+  ws = ws/sum(ws)
+  #Save time in line
+  if(all(tgt*ws<=bucketLims))
+    return(tgt*ws)
+  #Need to order things in the order they'll be removed as the tgt increases
+  o = order(bucketLims/ws)
+  w = ws[o]
+  y = bucketLims[o]
+  #The formula for number removed at entry i is
+  #k_i = \frac{y_i}{w_i} (1- \sum_j=0^{i-1} w_j) + \sum_j=0^{i-1} y_j
+  cw = cumsum(c(0,w[-length(w)]))
+  cy = cumsum(c(0,y[-length(y)]))
+  k = y/w* (1 - cw) + cy
+  #Everything that has k<=tgt will be set to y
+  b = (k<=tgt)
+  #We then need to work out how many counts to distribute we have left over and distribute them according to re-normalised weights
+  tgt = tgt-sum(y[b])
+  w = w/(1-sum(w[b]))
+  out = ifelse(b,y,tgt*w)
+  #Need to reverse sort
+  return(out[order(o)])
 }
