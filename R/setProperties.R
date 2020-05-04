@@ -1,3 +1,24 @@
+#' Set soup profile
+#'
+#' Manually sets or updates the soup profile for a SoupChannel object. 
+#'
+#' @export
+#' @param sc A SoupChannel object.
+#' @param soupProfile A data.frame with columns \code{est} containing the fraction of soup for each gene, \code{counts} containing the total counts for each gene and with row names corresponding to the row names of \code{sc$toc}.
+#' @return An updated SoupChannel object with the soup profile set.
+setSoupProfile = function(sc,soupProfile){
+  if(! 'est' %in% colnames(soupProfile))
+    stop("est column missing from soupProfile")
+  if(! 'counts' %in% colnames(soupProfile))
+    stop("counts column missing from soupProfile")
+  if(!all(rownames(soupProfile) %in% rownames(sc$toc))){
+    stop("soupProfile invalid.  Not all genes found.")
+  }else{
+    sc$soupProfile = soupProfile[rownames(sc$toc),]
+  }
+  return(sc)
+}
+
 #' Sets clustering for SoupChannel
 #' 
 #' Adds or updates clustering information to meta-data table in SoupChannel object.

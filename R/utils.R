@@ -88,12 +88,14 @@ alloc = function(tgt,bucketLims,ws=rep(1/length(bucketLims),length(bucketLims)))
   cw = cumsum(c(0,w[-length(w)]))
   cy = cumsum(c(0,y[-length(y)]))
   k = y/w* (1 - cw) + cy
+  #Handle zero-weights appropriately
+  k[w==0] = Inf
   #Everything that has k<=tgt will be set to y
   b = (k<=tgt)
   #We then need to work out how many counts to distribute we have left over and distribute them according to re-normalised weights
-  tgt = tgt-sum(y[b])
+  resid = tgt-sum(y[b])
   w = w/(1-sum(w[b]))
-  out = ifelse(b,y,tgt*w)
+  out = ifelse(b,y,resid*w)
   #Need to reverse sort
   return(out[order(o)])
 }

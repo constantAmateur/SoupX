@@ -4,7 +4,7 @@
 \alias{SoupChannel}
 \title{Construct a SoupChannel object}
 \usage{
-SoupChannel(tod, toc, metaData = NULL, soupEstParams = list(), ...)
+SoupChannel(tod, toc, metaData = NULL, calcSoupProfile = TRUE, ...)
 }
 \arguments{
 \item{tod}{Table of droplets.  A matrix with columns being each droplet and rows each gene.}
@@ -13,7 +13,7 @@ SoupChannel(tod, toc, metaData = NULL, soupEstParams = list(), ...)
 
 \item{metaData}{Meta data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.}
 
-\item{soupEstParams}{Pramaters passed to \code{\link{estimateSoup}}.}
+\item{calcSoupProfile}{By default, the soup profile is calculated using \code{\link{estimateSoup}} with default values.  If you want to do something other than the defaults, set this to \code{FALSE} and call \code{\link{estimateSoup}} manually.}
 
 \item{...}{Any other named parameters to store.}
 }

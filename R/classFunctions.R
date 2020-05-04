@@ -6,12 +6,12 @@
 #' @param tod Table of droplets.  A matrix with columns being each droplet and rows each gene.
 #' @param toc Table of counts.  Just those columns of \code{tod} that contain cells.
 #' @param metaData Meta data pertaining to the cells.  Optional.  Must be a data-frame with rownames equal to column names of \code{toc}.
-#' @param soupEstParams Pramaters passed to \code{\link{estimateSoup}}.
+#' @param calcSoupProfile By default, the soup profile is calculated using \code{\link{estimateSoup}} with default values.  If you want to do something other than the defaults, set this to \code{FALSE} and call \code{\link{estimateSoup}} manually.
 #' @param ... Any other named parameters to store.
 #' @return A SoupChannel object.
 #' @importFrom Matrix colSums
 #' @seealso SoupChannelList estimateSoup
-SoupChannel = function(tod,toc,metaData=NULL,soupEstParams=list(),...){
+SoupChannel = function(tod,toc,metaData=NULL,calcSoupProfile=TRUE,...){
   if(!is.null(metaData) & !all(sort(colnames(toc))==sort(rownames(metaData))))
     stop("Rownames of metaData must match column names of table of counts.")
   #Munge everything into a list
@@ -31,7 +31,8 @@ SoupChannel = function(tod,toc,metaData=NULL,soupEstParams=list(),...){
   out$nDropUMIs = colSums(tod)
   class(out) = c('list','SoupChannel')
   #Estimate the soup
-  out = do.call(estimateSoup,c(list(out),soupEstParams))
+  if(calcSoupProfile)
+    out = estimateSoup(out)
   return(out)
 }
 
