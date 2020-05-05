@@ -74,8 +74,8 @@ library(SoupX)
 
 Like every other single cell tool out there, we are going to use one of the 10X PBMC data sets to demonstrate how to use this package.  Specifically, we will use this [PBMC dataset](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).  The starting point is to download the [raw](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz) and [filtered](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz) cellranger output and extract them to a temporary folder as follows.
 
-```{r download}
-tmpDir = tempdir()
+```{r download,eval=FALSE}
+tmpDir = tempdir(check=TRUE)
 download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'tod.tar.gz'))
 download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'toc.tar.gz'))
 untar(file.path(tmpDir,'tod.tar.gz'),exdir=tmpDir)
@@ -86,15 +86,26 @@ untar(file.path(tmpDir,'toc.tar.gz'),exdir=tmpDir)
 
 SoupX comes with a convenience function for loading 10X data processed using cellranger.  If you downloaded the data as above you can use it to get started by running,
 
-```{r load_data,eval=TRUE}
+```{r load_data,eval=FALSE}
 sc = load10X(tmpDir)
 ```
 
-This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  We can do this for the PBMC data by running.
+This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  We will take this approach in this vignette to demonstrate "manual" constrution.  A dataset \code{PBMC} is bundled with SoupX, which includes meta data and cellular barcodes, but not the raw table of droplets.  To load all the PBMC data and create a `SoupChannel` object run,
 
 ```{r load_data_manual,eval=TRUE}
-tod = Seurat::Read10X(file.path(tmpDir,'raw_gene_bc_matrices','GRCh38'))
-toc = Seurat::Read10X(file.path(tmpDir,'filtered_gene_bc_matrices','GRCh38'))
+#Get the sparse matrix
+tod = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/matrix.mtx.gz'))
+tod = readMM(tod)
+#Get the gene names
+tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/genes.tsv.gz'))
+tmp = readLines(tmp)
+rownames(tod) = do.call(rbind,strsplit(tmp,'\t'))[,1]
+#And the droplet barcodes
+tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
+colnames(tod) = gsub('-1$','',readLines(tmp))
+#Load PBMC data to get cellular barcodes
+data(PBMC)
+toc = tod[,PBMC_cellBarcodes]
 scManual = SoupChannel(tod,toc)
 ```
 
