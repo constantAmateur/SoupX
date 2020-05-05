@@ -59,7 +59,7 @@ expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose
       weightsLocal = ww[expCnts@j[wLocal]+1]
       while(TRUE){
         #Adjust guess
-        outLocal[tgtLocal] = outLocal[tgtLocal] + toDo*ww[tgtLocal]/sum(ww[tgtLocal])
+        outLocal[tgtLocal] = outLocal[tgtLocal] + toDo*weightsLocal[tgtLocal]/sum(weightsLocal[tgtLocal])
         #Update counter of remaining allocation budget
         w = outLocal[tgtLocal]-limLocal[tgtLocal]
         toDo = sum(w[w>0])
