@@ -24,7 +24,7 @@
 #' @param forceAccept Passed to \code{\link{setContaminationFraction}}.
 #' @param verbose Be verbose?
 #' @seealso quickMarkers
-#' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
+#' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in the slot \code{fit}
 #' @importFrom stats dgamma qgamma 
 #' @importFrom graphics abline lines legend plot
 autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMarkers=100,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){

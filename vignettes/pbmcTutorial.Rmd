@@ -36,13 +36,13 @@ The method to do this consists of three parts:
 
 In previous versions of SoupX, the estimation of the contamination fraction (step 2) was the part that caused the most difficulty for the user. The contamination fraction is parametrised as `rho` in the code, with `rho=0` meaning no contamination and `rho=1` meaning 100% of UMIs in a droplet are soup. 
 
-From version 1.3.0 onwards, an automated routine for estimating the contamination fraction is provided, which should be suitable is most circumstances.  However, this vignette will still spend a lot of effort explaining how to calculate the contamiantion fraction "manually".  This is because there are still circumstances where manually estamting `rho` is preferable or the only option and it is important to understanding how the method works and how it can fail.
+From version 1.3.0 onwards, an automated routine for estimating the contamination fraction is provided, which should be suitable is most circumstances.  However, this vignette will still spend a lot of effort explaining how to calculate the contamination fraction "manually".  This is because there are still circumstances where manually estimating `rho` is preferable or the only option and it is important to understanding how the method works and how it can fail.
 
-While it is possible to run SoupX without clustering information, you will get far better results if some basic clustering is provided.  Therefore, it is **strongly** recommended that you provide some clustering information to SoupX.  If you are using 10X data mapped with cellranger, the default clustering produced by cellranger is automatically loaded and used.  The results are not strongly sensative to the clustering used.  Seurat with default parameters will also yield similar results.
+While it is possible to run SoupX without clustering information, you will get far better results if some basic clustering is provided.  Therefore, it is **strongly** recommended that you provide some clustering information to SoupX.  If you are using 10X data mapped with cellranger, the default clustering produced by cellranger is automatically loaded and used.  The results are not strongly sensitive to the clustering used.  Seurat with default parameters will also yield similar results.
 
 # Quickstart
 
-If you have some 10X data which has been mapped with cellranger, the typical SoupX workflow would be.
+If you have some 10X data which has been mapped with cellranger, the typical SoupX work flow would be.
 
 ```{r quick_start, eval=FALSE}
 library(SoupX)
@@ -69,6 +69,7 @@ Once installed, you can load the package in the usual way,
 ```{r load}
 library(SoupX)
 ```
+
 # PBMC dataset
 
 Like every other single cell tool out there, we are going to use one of the 10X PBMC data sets to demonstrate how to use this package.  Specifically, we will use this [PBMC dataset](https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k).  The starting point is to download the [raw](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz) and [filtered](http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz) cellranger output and extract them to a temporary folder as follows.
@@ -316,7 +317,7 @@ Note too that the decision of what genes to use to estimate the contamination mu
 
 Looking at this plot, we observe that there are two immunoglobulin genes from the constant region (_IGKC_ and _IGHM_) present and they give a consistent estimate of the contamination fraction of around 10% (-1 on the log10 scale).  As we know that it is reasonable to assume that immunoglobulin genes are expressed only in B-cells, we will decide to use their expression in non B-cells to estimate the contamination fraction.
 
-But there's no reason to just use the genes inferNonExpressedGenes flagged for us.  So let's define a list of all the constant immunoglobulin genes, 
+But there's no reason to just use the genes `quickMarkers` flagged for us.  So let's define a list of all the constant immunoglobulin genes, 
 
 ```{r igGenes}
 igGenes = c('IGHA1','IGHA2','IGHG1','IGHG2','IGHG3','IGHG4','IGHD','IGHE','IGHM',
@@ -373,7 +374,7 @@ sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSp
 quantile(sc$metaData$rho)
 ```
 
-This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `fit` slot of the `sc` object (this is true for all methods for estimating the contamination).
+This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a Bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `fit` slot of the `sc` object (this is true for all methods for estimating the contamination).
 
 ## Correcting expression profile
 
@@ -402,7 +403,7 @@ mostZeroed
 
 Notice that a number of the genes on this list are highly specific markers of one cell type or group of cells (_CD74_/_HLA-DRA_ antigen presenting cells, _IGKC_ B-cells) and others came up on our list of potential cell specific genes.  Notice also the presence of the mitochondrial gene _MT-ND3_.
 
-If on the other hand we focus on genes for which there is a quantative difference,
+If on the other hand we focus on genes for which there is a quantitative difference,
 
 ```{r mostReduced}
 tail(sort(rowSums(sc$toc>out)/rowSums(sc$toc>0)),n=20)

@@ -30,7 +30,7 @@ adjustCounts(
 
 \item{pCut}{The p-value cut-off used when \code{method='soupOnly'}.}
 
-\item{...}{Passed to expandClusters.  Of particular interest is the nCores parameter which can be used to parallelise the calculation.}
+\item{...}{Passed to expandClusters.}
 }
 \value{
 A modified version of the table of counts, with background contamination removed.
@@ -41,9 +41,9 @@ After the level of background contamination has been estimated or specified for 
 \details{
 This essentially subtracts off the mean expected background counts for each gene, then redistributes any "unused" counts.  A count is unused if its subtraction has no effect.  For example, subtracting a count from a gene that has zero counts to begin with.
 
-As expression data is highly sparse at the single cell level, it is highly recommended that clustering information be provided to allow the subtraction method to share information between cells.  Without grouping cells into clusters, it is difficult (and usually impossible) to tell the difference between a count of 1 due to background contamination and a count of 1 due to endogenous expression.  This ambiguity is removed at the cluster level where counts can be aggregated across cells.  This information can then be propogated back to the individual cell level to provide a more accurate removal of contaminating counts.
+As expression data is highly sparse at the single cell level, it is highly recommended that clustering information be provided to allow the subtraction method to share information between cells.  Without grouping cells into clusters, it is difficult (and usually impossible) to tell the difference between a count of 1 due to background contamination and a count of 1 due to endogenous expression.  This ambiguity is removed at the cluster level where counts can be aggregated across cells.  This information can then be propagated back to the individual cell level to provide a more accurate removal of contaminating counts.
 
-To provide clustering information, either set clustering on the SoupChannel object with \code{\link{setClusters}} or explicitly passing the \code{clusters} paramater.  
+To provide clustering information, either set clustering on the SoupChannel object with \code{\link{setClusters}} or explicitly passing the \code{clusters} parameter.  
 
 If \code{roundToInt=TRUE}, this function will round the result to integers.  That is, it will take the floor of the connected value and then round back up with probability equal to the fractional part of the number.
 

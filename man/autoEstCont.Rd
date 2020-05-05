@@ -45,7 +45,7 @@ autoEstCont(
 \item{verbose}{Be verbose?}
 }
 \value{
-A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
+A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in the slot \code{fit}
 }
 \description{
 The idea of this method is that genes that are highly expressed in the soup and are marker genes for some population can be used to estimate the background contamination.  Marker genes are identified using the tfidf method (see \code{\link{quickMarkers}}).  The contamination fraction is then calculated at the cluster level for each of these genes and clusters are then aggressively pruned to remove those that give implausible estimates.

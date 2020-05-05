@@ -15,7 +15,7 @@ load10X(
 )
 }
 \arguments{
-\item{dataDir}{Top level cellranger output directory (the directory that contains the "raw_gene_bc_matrices" folder).}
+\item{dataDir}{Top level cellranger output directory (the directory that contains the \code{raw_gene_bc_matrices} folder).}
 
 \item{cellIDs}{Barcodes of droplets that contain cells.  If NULL, use the default cellranger set.}
 
