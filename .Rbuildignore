@@ -1,2 +1,3 @@
 ^CRAN-RELEASE$
 ^cran-comments\.md$
+^inst/extdata$

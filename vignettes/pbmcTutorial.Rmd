@@ -106,7 +106,7 @@ colnames(tod) = gsub('-1$','',readLines(tmp))
 #Load PBMC data to get cellular barcodes
 data(PBMC)
 toc = tod[,PBMC_cellBarcodes]
-scManual = SoupChannel(tod,toc)
+sc = SoupChannel(tod,toc)
 ```
 
 ## Profiling the soup
@@ -139,7 +139,6 @@ By default, when the soup is estimated using `estimateSoup` the table of droplet
 We have some extra meta data that it is essential we include in our `SoupChannel` object.  In general you can add any meta data by providing a `data.frame` with row names equal to the column names of the `toc` when building the `SoupChannel` object.  To save time, some meta data for the PBMC data has been bundled with SoupX, which we can load in like this,
 
 ```{r load_data_with_mDat, eval=TRUE}
-data(PBMC)
 scWithMdat = SoupChannel(tod,toc,metaData=PBMC_DR)
 ```
 
@@ -460,10 +459,4 @@ The corrected matrix can then be used for any downstream analysis in place of th
 
 ```{r writeOut,eval=FALSE}
 DropletUtils:::write10xCounts('./strainedCounts',out)
-```
-
-Finally, we will delete the data we downloaded.
-
-```{r delete_data}
-unlink(tmpDir,recursive=TRUE)
 ```
