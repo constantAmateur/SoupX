@@ -7,6 +7,15 @@
 #' @param soupRange Droplets with total UMI count in this range (excluding endpoints) are used to estimate soup.
 #' @param keepDroplets Storing the full table of counts for all droplets uses a lot of space and is really only used to estimate the soup profile.  Therefore, it is dropped after the soup profile has been estimated unless this is set to \code{TRUE}.
 #' @return A modified version of \code{sc} with an extra \code{soupProfile} entry containing a data.frame with the soup profile and confidence limits for all genes.
+#' @examples
+#' \dontrun{
+#' #Retain table of droplets
+#' sc = estimateSoup(sc,keepDroplets=TRUE)
+#' is.null(sc$tod)
+#' #Default drops them
+#' sc = estimateSoup(sc)
+#' is.null(sc$tod)
+#' }
 estimateSoup = function(sc,soupRange=c(0,100),keepDroplets=FALSE){
   if(!is(sc,'SoupChannel'))
     stop("sc must be a SoupChannel object.")

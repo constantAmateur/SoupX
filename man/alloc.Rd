@@ -19,3 +19,12 @@ A vector of the same length as \code{bucketLims} containing values distributed i
 \description{
 Allocates \code{tgt} of something to \code{length(bucketLims)} different "buckets" subject to the constraint that each bucket has a maximum value of \code{bucketLims} that cannot be exceeded.  By default counts are distributed equally between buckets, but weights can be provided using \code{ws} to have the redistribution prefer certain buckets over others.
 }
+\examples{
+set.seed(1137)
+ws = abs(rnorm(10))
+tops = round(runif(10)*3)
+#Simple case where the bucket limits change nothing
+SoupX:::alloc(1,tops,ws)
+#Case where some buckets get full
+SoupX:::alloc(8,tops,ws)
+}

@@ -51,3 +51,10 @@ The \code{method} parameter controls how the removal of counts in performed.  Th
 
 In greater detail, the 'soupOnly' method is done by sorting genes within each cell by their p-value under the null of the expected soup fraction using a Poisson model.  So that genes that definitely do have a endogenous contribution are at the end of the list with p=0.  Those genes for which there is poor evidence of endogenous cell expression are removed, until we have removed approximately nUMIs*rho molecules.  The cut-off to prevent removal of genes above nUMIs*rho in each cell is achieved by calculating a separate p-value for the total number of counts removed to exceed nUMIs*rho, again using a Poisson model.  The two p-values are combined using Fisher's method and the cut-off is applied to the resulting combined p-value calculated using a chi-squared distribution with 4 degrees of freedom.
 }
+\examples{
+\dontrun{
+out = adjustCounts(sc)
+#Return integer counts only
+out = adjustCounts(sc,roundToInt=TRUE)
+}
+}

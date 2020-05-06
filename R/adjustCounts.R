@@ -24,6 +24,12 @@
 #' @param pCut The p-value cut-off used when \code{method='soupOnly'}.
 #' @param ... Passed to expandClusters.
 #' @return A modified version of the table of counts, with background contamination removed.
+#' @examples
+#' \dontrun{
+#' out = adjustCounts(sc)
+#' #Return integer counts only
+#' out = adjustCounts(sc,roundToInt=TRUE)
+#' }
 #' @importFrom Matrix sparseMatrix Matrix
 #' @importFrom stats rbinom pchisq
 adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','multinomial'),roundToInt=FALSE,verbose=1,tol=1e-3,pCut=0.01,...){

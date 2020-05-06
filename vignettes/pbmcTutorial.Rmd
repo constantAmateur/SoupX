@@ -202,6 +202,8 @@ Probably the most difficult part of using SoupX is accurately estimating the lev
 
 This is the most challenging part of the method to understand and we have included a lot of detail here. But successfully applying SoupX does not depend on understanding all these details.  The key thing to understand is that the contamination fraction estimate is the fraction of your data that will be discarded.  If this value is set too low, your "corrected" data will potentially still be highly contaminated.  If you set it too high, you will discard real data, although there are good reasons to want to do this at times (see section below).  If the contamination fraction is in the right ball park, SoupX will remove most of the contamination.  It will generally not matter if this number if off by a few percent.
 
+Note that all modes of determining the contamination fraction add an entry titled `fit` to the `SoupChannel` object which contains details of how the final estimate was reached. 
+
 ### Manually specifying the contamination fraction
 
 It is worth considering simply manually fixing the contamination fraction at a certain value.  This seems like a bad thing to do intuitively, but there are actually good reasons you might want to.  When the contamination fraction is set too high, true expression will be removed from your data.  However, this is done in such a way that the counts that are most specific to a subset of cells (i.e., good marker genes) will be the absolute last thing to be removed.  Because of this, it can be a sensible thing to set a high contamination fraction for a set of experiments and be confident that the vast majority of the contamination has been removed.
@@ -375,15 +377,6 @@ This function will modify the `metaData` table of `sc` object to add a table giv
 ```{r viewCont}
 head(sc$metaData)
 ```
-
-In 99% of cases the default values of `calculateContaminationFraction` are what you will want.  However, in rare circumstances where you have lots of good genes to estimate contamination you way want to estimate the contamination not globally (the default), but separately for each cell.  Most of the time there is no point in doing this as the contamination fraction does not vary greatly across a channel.  We can do cell specific contamination estimation as follows,
-
-```{r cellSpecificRho,eval=FALSE}
-sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
-quantile(sc$metaData$rho)
-```
-
-This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a Bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `fit` slot of the `sc` object (this is true for all methods for estimating the contamination).
 
 ## Correcting expression profile
 

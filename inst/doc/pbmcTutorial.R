@@ -40,7 +40,6 @@ rownames(tod) = make.unique(do.call(rbind,strsplit(tmp,'\t'))[,2])
 tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
 colnames(tod) = gsub('-1$','',readLines(tmp))
 #Load PBMC data to get cellular barcodes
-data(PBMC)
 toc = tod[,PBMC_cellBarcodes]
 sc = SoupChannel(tod,toc)
 
@@ -129,10 +128,6 @@ sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 
 ## ----viewCont------------------------------------------------------------
 head(sc$metaData)
-
-## ----cellSpecificRho,eval=FALSE------------------------------------------
-#  sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
-#  quantile(sc$metaData$rho)
 
 ## ----decontaminate-------------------------------------------------------
 out = adjustCounts(sc)

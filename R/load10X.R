@@ -12,6 +12,10 @@
 #' @param ... Extra parameters passed to \code{SoupChannel} construction function.
 #' @return A SoupChannel object containing the count tables for the 10X dataset.
 #' @seealso SoupChannel estimateSoup
+#' @examples
+#' \dontrun{
+#' sc = load10X('/path/to/cellranger/output/out')
+#' }
 #' @importFrom Seurat Read10X
 #' @importFrom utils read.csv
 load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),includeFeatures=c('Gene Expression'),verbose=TRUE,...){

@@ -23,6 +23,21 @@ A SoupChannel object.
 \description{
 Creates a SoupChannel object that contains everything related to the soup estimation of a single channel.
 }
+\examples{
+\dontrun{
+#Default calculates soup profile
+sc = SoupChannel(tod,toc)
+names(sc)
+#This can be suppressed
+sc = SoupChannel(tod,toc,calcSoupProfile=FALSE)
+names(sc)
+#And the soup profile calculated with non-default values
+sc = estimateSoup(sc,soupRange=c(10,50))
+#Or added manually
+soupProf = data.frame(row.names = rownames(toc),est=rowSums(toc)/sum(toc),counts=rowSums(toc))
+sc = setSoupProfile(sc,soupProf)
+}
+}
 \seealso{
 SoupChannelList estimateSoup
 }

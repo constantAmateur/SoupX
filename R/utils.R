@@ -73,6 +73,14 @@ initProgBar = function(min,max,...){
 #' @param bucketLims The maximum value that each bucket can take.  Must be a vector of positive values.
 #' @param ws Weights to be used for each bucket.  Default value makes all buckets equally likely.
 #' @return A vector of the same length as \code{bucketLims} containing values distributed into buckets.
+#' @examples
+#' set.seed(1137)
+#' ws = abs(rnorm(10))
+#' tops = round(runif(10)*3)
+#' #Simple case where the bucket limits change nothing
+#' SoupX:::alloc(1,tops,ws)
+#' #Case where some buckets get full
+#' SoupX:::alloc(8,tops,ws)
 alloc = function(tgt,bucketLims,ws=rep(1/length(bucketLims),length(bucketLims))){
   #Normalise weights
   ws = ws/sum(ws)

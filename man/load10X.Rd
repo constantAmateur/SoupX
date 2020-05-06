@@ -35,6 +35,11 @@ A SoupChannel object containing the count tables for the 10X dataset.
 \description{
 Loads unfiltered 10X data from each data-set and identifies which droplets are cells using the cellranger defaults.
 }
+\examples{
+\dontrun{
+sc = load10X('/path/to/cellranger/output/out')
+}
+}
 \seealso{
 SoupChannel estimateSoup
 }

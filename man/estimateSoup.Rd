@@ -19,3 +19,13 @@ A modified version of \code{sc} with an extra \code{soupProfile} entry containin
 \description{
 This is usually called by \code{\link{SoupChannel}}, rather than directly by the user.  Uses the empty droplets in the range provided to calculate the expression profile of the soup under the assumption that these droplets only contain background.
 }
+\examples{
+\dontrun{
+#Retain table of droplets
+sc = estimateSoup(sc,keepDroplets=TRUE)
+is.null(sc$tod)
+#Default drops them
+sc = estimateSoup(sc)
+is.null(sc$tod)
+}
+}

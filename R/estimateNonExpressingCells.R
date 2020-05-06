@@ -18,6 +18,10 @@
 #' @param FDR A Poisson test is used to identify cells to exclude, this is the false discovery rate it uses.  Higher FDR = more aggressive exclusion.
 #' @seealso calculateContaminationFraction plotMarkerMap
 #' @return A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.
+#' @examples
+#' \dontrun{
+#' ute = estimateNonExpressingCells(sc,list(HB=c('HBB','HBA2')))
+#' }
 estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maximumContamination=1.0,FDR=0.05){
   if(!is(sc,'SoupChannel'))
     stop("sc is not a valid SoupChannel object")

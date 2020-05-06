@@ -21,6 +21,14 @@
 #' @param stanParams Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.
 #' @param forceAccept Passed to \code{\link{setContaminationFraction}}.
 #' @return A modified version of \code{sc} with estimates of the contamination (rho) added to the metaData table.
+#' @examples
+#' \dontrun{
+#' geneList = list(HB=c('HBB','HBA2'))
+#' ute = estimateNonExpressingCells(sc,geneList)
+#' sc = calculateContaminationFraction(sc,geneList,ute)
+#' #Use hierarchical bayes method to estimate cell specific contamination (requires rstan)
+#' sc = calculateContaminationFraction(sc,geneList,ute,cellSpecificEstimates=TRUE)
+#' }
 #' @importFrom stats coef confint glm poisson quantile
 calculateContaminationFraction = function(sc,nonExpressedGeneList,useToEst,verbose=TRUE,cellSpecificEstimates=FALSE,stanParams=list(chains=1,warmup=8000,iter=24000,cores=1),forceAccept=FALSE){
   if(!is(sc,'SoupChannel')){

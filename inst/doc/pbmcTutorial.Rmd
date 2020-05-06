@@ -90,7 +90,7 @@ SoupX comes with a convenience function for loading 10X data processed using cel
 sc = load10X(tmpDir)
 ```
 
-This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  We will take this approach in this vignette to demonstrate "manual" constrution.  A dataset \code{PBMC} is bundled with SoupX, which includes meta data and cellular barcodes, but not the raw table of droplets.  To load all the PBMC data and create a `SoupChannel` object run,
+This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  We will take this approach in this vignette to demonstrate "manual" constrution.  A dataset `PBMC` is bundled with SoupX, which includes meta data (`PBMC_DR`) and cellular barcodes (`PBMC_cellBarcodes'), but not the raw table of droplets.  To load all the PBMC data and create a `SoupChannel` object run,
 
 ```{r load_data_manual,eval=TRUE}
 library(Matrix)
@@ -105,7 +105,6 @@ rownames(tod) = make.unique(do.call(rbind,strsplit(tmp,'\t'))[,2])
 tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
 colnames(tod) = gsub('-1$','',readLines(tmp))
 #Load PBMC data to get cellular barcodes
-data(PBMC)
 toc = tod[,PBMC_cellBarcodes]
 sc = SoupChannel(tod,toc)
 ```
@@ -202,6 +201,8 @@ We have made these plots assuming each droplet contains nothing but background c
 Probably the most difficult part of using SoupX is accurately estimating the level of background contamination (represented as `rho`) in each channel.  There are two ways to do this: using the automatic `autoEstCont` method, or manually providing a list of "non expressed genes".  This vignette will demonstrate both methods, but we anticipate that the automatic method will be used in most circumstances.  Before that we will describe the idea that underpins both approaches; identifying genes that are not expressed by some cells in our data and the expression that we observe for these genes in these cells must be due to contamination.
 
 This is the most challenging part of the method to understand and we have included a lot of detail here. But successfully applying SoupX does not depend on understanding all these details.  The key thing to understand is that the contamination fraction estimate is the fraction of your data that will be discarded.  If this value is set too low, your "corrected" data will potentially still be highly contaminated.  If you set it too high, you will discard real data, although there are good reasons to want to do this at times (see section below).  If the contamination fraction is in the right ball park, SoupX will remove most of the contamination.  It will generally not matter if this number if off by a few percent.
+
+Note that all modes of determining the contamination fraction add an entry titled `fit` to the `SoupChannel` object which contains details of how the final estimate was reached. 
 
 ### Manually specifying the contamination fraction
 
@@ -376,15 +377,6 @@ This function will modify the `metaData` table of `sc` object to add a table giv
 ```{r viewCont}
 head(sc$metaData)
 ```
-
-In 99% of cases the default values of `calculateContaminationFraction` are what you will want.  However, in rare circumstances where you have lots of good genes to estimate contamination you way want to estimate the contamination not globally (the default), but separately for each cell.  Most of the time there is no point in doing this as the contamination fraction does not vary greatly across a channel.  We can do cell specific contamination estimation as follows,
-
-```{r cellSpecificRho,eval=FALSE}
-sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst,cellSpecificEstimates=TRUE)
-quantile(sc$metaData$rho)
-```
-
-This procedure depends on [rstan](https://mc-stan.org/users/interfaces/rstan) and uses a Bayesian model to share information between cells.  It is much, **much** slower and there is seldom ever any point bothering.  Information about the fit can be found in `fit` slot of the `sc` object (this is true for all methods for estimating the contamination).
 
 ## Correcting expression profile
 
