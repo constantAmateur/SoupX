@@ -20,12 +20,15 @@ A modified version of \code{sc} with an extra \code{soupProfile} entry containin
 This is usually called by \code{\link{SoupChannel}}, rather than directly by the user.  Uses the empty droplets in the range provided to calculate the expression profile of the soup under the assumption that these droplets only contain background.
 }
 \examples{
-\dontrun{
+#Load droplet and count tables
+tod = Seurat::Read10X(system.file('extdata','toyData','raw_gene_bc_matrices','GRCh38',
+                                  package='SoupX'))
+toc = Seurat::Read10X(system.file('extdata','toyData','filtered_gene_bc_matrices','GRCh38',
+                                  package='SoupX'))
+#Suppress calculation of soup profile automatically on load
+sc = SoupChannel(tod,toc,calcSoupProfile=FALSE)
 #Retain table of droplets
 sc = estimateSoup(sc,keepDroplets=TRUE)
-is.null(sc$tod)
-#Default drops them
-sc = estimateSoup(sc)
-is.null(sc$tod)
-}
+#Or use non-default values
+sc = estimateSoup(sc,soupRange=c(60,100))
 }

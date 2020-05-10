@@ -36,9 +36,7 @@ A SoupChannel object containing the count tables for the 10X dataset.
 Loads unfiltered 10X data from each data-set and identifies which droplets are cells using the cellranger defaults.
 }
 \examples{
-\dontrun{
-sc = load10X('/path/to/cellranger/output/out')
-}
+sc = load10X(system.file('extdata','toyData',package='SoupX'))
 }
 \seealso{
 SoupChannel estimateSoup

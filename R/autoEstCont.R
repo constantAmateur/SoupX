@@ -26,14 +26,12 @@
 #' @seealso quickMarkers
 #' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in the slot \code{fit}
 #' @examples
-#' \dontrun{
 #' #Use less specific markers
-#' sc = autoEstCont(sc,tfidfMin=0.8)
+#' scToy = autoEstCont(scToy,tfidfMin=0.8)
 #' #Allow large contamination fractions to be allocated
-#' sc = autoEstCont(sc,forceAccept=TRUE)
+#' scToy = autoEstCont(scToy,forceAccept=TRUE)
 #' #Be quiet
-#' sc = autoEstCont(sc,verbose=FALSE,doPlot=FALSE)
-#' }
+#' scToy = autoEstCont(scToy,verbose=FALSE,doPlot=FALSE)
 #' @importFrom stats dgamma qgamma 
 #' @importFrom graphics abline lines legend plot
 autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMarkers=100,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){

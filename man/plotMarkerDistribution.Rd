@@ -36,3 +36,6 @@ The red line shows the global estimate of the contamination for each group of ma
 
 If \code{nonExpressedGeneList} is missing, this function will try and find genes that are very specific to different clusters, as these are often the most useful in estimating the contamination fraction.   This is meant only as a heuristic, which can hopefully provide some inspiration as to a class of genes to use to estimation the contamination for your experiment.  Please do **NOT** blindly use the top N genes found in this way to estimate the contamination.  That is, do not feed this list of genes into \code{\link{calculateContaminationFraction}} without any manual consideration or filtering as this *will over-estimate your contamination* (often by a large amount).  For this reason, these gene names are not returned by the function.
 }
+\examples{
+gg = plotMarkerDistribution(scToy,list(CD7='CD7',LTB='LTB'))
+}

@@ -1,4 +1,4 @@
 ^CRAN-RELEASE$
 ^cran-comments\.md$
-^inst/extdata$
+^inst/extdata/PBMC_4k$
 ^Meta$

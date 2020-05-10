@@ -19,3 +19,7 @@ A modified SoupChannel object for which the contamination (rho) has been set.
 \description{
 Manually specify the contamination fraction.
 }
+\examples{
+sc = load10X(system.file('extdata','toyData',package='SoupX'))
+sc = setContaminationFraction(sc,0.1)
+}

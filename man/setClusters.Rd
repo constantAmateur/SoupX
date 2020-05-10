@@ -17,3 +17,8 @@ An updated SoupChannel object with clustering information stored.
 \description{
 Adds or updates clustering information to meta-data table in SoupChannel object.
 }
+\examples{
+sc = load10X(system.file('extdata','toyData',package='SoupX'))
+mDat = read.table(system.file('extdata','toyData','metaData.tsv',package='SoupX'),sep='\t')
+sc = setClusters(sc,mDat$res.1)
+}

@@ -19,9 +19,11 @@
 #' @seealso calculateContaminationFraction plotMarkerMap
 #' @return A matrix indicating which cells to be used to estimate contamination for each set of genes.  Typically passed to the \code{useToEst} parameter of \code{\link{calculateContaminationFraction}} or \code{\link{plotMarkerMap}}.
 #' @examples
-#' \dontrun{
-#' ute = estimateNonExpressingCells(sc,list(HB=c('HBB','HBA2')))
-#' }
+#' #Common gene list in real world data
+#' geneList = list(HB=c('HBB','HBA2'))
+#' #Gene list appropriate to toy data
+#' geneList = list(CD7 = 'CD7')
+#' ute = estimateNonExpressingCells(scToy,geneList)
 estimateNonExpressingCells = function(sc,nonExpressedGeneList,clusters=NULL,maximumContamination=1.0,FDR=0.05){
   if(!is(sc,'SoupChannel'))
     stop("sc is not a valid SoupChannel object")

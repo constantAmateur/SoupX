@@ -4,6 +4,8 @@
 #'
 #' @param sc A SoupChannel object.
 #' @return A ggplot2 object containing the plot.
+#' @examples
+#' gg = SoupX:::plotSoupCorrelation(scToy)
 plotSoupCorrelation = function(sc){
   if(!is(sc,'SoupChannel'))
     stop("sc not a valid SoupChannel object.")
@@ -37,6 +39,8 @@ plotSoupCorrelation = function(sc){
 #' @param ... Passed to \code{\link{estimateNonExpressingCells}}
 #' @importFrom stats setNames
 #' @return A ggplot2 object containing the plot.
+#' @examples
+#' gg = plotMarkerDistribution(scToy,list(CD7='CD7',LTB='LTB'))
 plotMarkerDistribution = function(sc,nonExpressedGeneList,maxCells=150,tfidfMin=1,...){
   if(!is(sc,'SoupChannel'))
     stop("sc not a valid SoupChannel object.")
@@ -131,6 +135,8 @@ plotMarkerDistribution = function(sc,nonExpressedGeneList,maxCells=150,tfidfMin=
 #' @param FDR False Discovery Rate for statistical test of enrichment over background.
 #' @param useToEst A vector (usually obtained from \code{\link{estimateNonExpressingCells}}), that will be used to mark cells instead of the usual Poisson test.
 #' @return A ggplot2 containing the plot.
+#' @examples
+#' gg = plotMarkerMap(scToy,'CD7')
 plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
   if(!is(sc,'SoupChannel'))
     stop("sc not a valid SoupChannel object.")
@@ -194,6 +200,9 @@ plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
 #' @param dataType How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, soupFrac plots the fraction of the observed counts that are identified as contamination (i.e., (old-new)/old) for each cell and is the default.
 #' @param logData Should we log the thing we plot?
 #' @return A ggplot2 containing the plot.
+#' @examples
+#' out = adjustCounts(scToy)
+#' gg = plotChangeMap(scToy,out,'S100A9')
 plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','binary','counts'),logData=FALSE){
   dataType = match.arg(dataType)
   if(dataType=='binary')

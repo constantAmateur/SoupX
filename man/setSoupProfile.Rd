@@ -17,3 +17,14 @@ An updated SoupChannel object with the soup profile set.
 \description{
 Manually sets or updates the soup profile for a SoupChannel object.
 }
+\examples{
+#Suppose only table of counts is available
+toc = Seurat::Read10X(system.file('extdata','toyData','filtered_gene_bc_matrices','GRCh38',
+                                  package='SoupX'))
+#Suppress calculating soup profile automatically
+sc = SoupChannel(toc,toc,calcSoupProfile=FALSE)
+#And add manually
+rowSums = Matrix::rowSums
+soupProf = data.frame(row.names = rownames(toc),est=rowSums(toc)/sum(toc),counts=rowSums(toc))
+sc = setSoupProfile(sc,soupProf)
+}

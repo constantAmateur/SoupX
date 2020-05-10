@@ -19,3 +19,8 @@ A modified SoupChannel object for which the dimension reduction has been set.
 \description{
 Manually specify the dimension reduction
 }
+\examples{
+sc = load10X(system.file('extdata','toyData',package='SoupX'))
+mDat = read.table(system.file('extdata','toyData','metaData.tsv',package='SoupX'),sep='\t')
+sc = setDR(sc,mDat[,c('tSNE_1','tSNE_2')])
+}

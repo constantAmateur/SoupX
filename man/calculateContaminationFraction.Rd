@@ -47,11 +47,10 @@ The global model fits a simple Poisson glm to the aggregated count data across a
 Finally, note that if you are not able to find a reliable set of genes to use for contamination estimation, or you do not trust the values produced, the contamination fraction can be manually set by the user using \code{\link{setContaminationFraction}}.
 }
 \examples{
-\dontrun{
+#Common gene list in real world data
 geneList = list(HB=c('HBB','HBA2'))
-ute = estimateNonExpressingCells(sc,geneList)
-sc = calculateContaminationFraction(sc,geneList,ute)
-#Use hierarchical bayes method to estimate cell specific contamination (requires rstan)
-sc = calculateContaminationFraction(sc,geneList,ute,cellSpecificEstimates=TRUE)
-}
+#Gene list appropriate to toy data
+geneList = list(CD7 = 'CD7')
+ute = estimateNonExpressingCells(scToy,geneList)
+sc = calculateContaminationFraction(scToy,geneList,ute)
 }

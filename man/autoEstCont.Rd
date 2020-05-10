@@ -60,14 +60,12 @@ The pruning of implausible clusters is based on a call to \code{\link{estimateNo
 For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
 }
 \examples{
-\dontrun{
 #Use less specific markers
-sc = autoEstCont(sc,tfidfMin=0.8)
+scToy = autoEstCont(scToy,tfidfMin=0.8)
 #Allow large contamination fractions to be allocated
-sc = autoEstCont(sc,forceAccept=TRUE)
+scToy = autoEstCont(scToy,forceAccept=TRUE)
 #Be quiet
-sc = autoEstCont(sc,verbose=FALSE,doPlot=FALSE)
-}
+scToy = autoEstCont(scToy,verbose=FALSE,doPlot=FALSE)
 }
 \seealso{
 quickMarkers

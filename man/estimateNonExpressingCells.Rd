@@ -39,9 +39,11 @@ To this end, this function will exclude any cluster of cells in which any cell i
 To decide if a cell is genuinely expressing a set of genes, a Poisson test is used.  This tests whether the observed expression is greater than \code{maximumContamination} times the expected number of counts for a set of genes, if the cell were assumed to be derived wholly from the background.  This process can be made less conservative (i.e., excluding fewer cells/clusters) by either decreasing the value of the maximum contamination the user believes is plausible (\code{maximumContamination}) or making the significance threshold for the test more strict (by reducing \code{FDR}).
 }
 \examples{
-\dontrun{
-ute = estimateNonExpressingCells(sc,list(HB=c('HBB','HBA2')))
-}
+#Common gene list in real world data
+geneList = list(HB=c('HBB','HBA2'))
+#Gene list appropriate to toy data
+geneList = list(CD7 = 'CD7')
+ute = estimateNonExpressingCells(scToy,geneList)
 }
 \seealso{
 calculateContaminationFraction plotMarkerMap

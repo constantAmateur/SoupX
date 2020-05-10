@@ -6,6 +6,16 @@
 #' @param sc A SoupChannel object.
 #' @param soupProfile A data.frame with columns \code{est} containing the fraction of soup for each gene, \code{counts} containing the total counts for each gene and with row names corresponding to the row names of \code{sc$toc}.
 #' @return An updated SoupChannel object with the soup profile set.
+#' @examples
+#' #Suppose only table of counts is available
+#' toc = Seurat::Read10X(system.file('extdata','toyData','filtered_gene_bc_matrices','GRCh38',
+#'                                   package='SoupX'))
+#' #Suppress calculating soup profile automatically
+#' sc = SoupChannel(toc,toc,calcSoupProfile=FALSE)
+#' #And add manually
+#' rowSums = Matrix::rowSums
+#' soupProf = data.frame(row.names = rownames(toc),est=rowSums(toc)/sum(toc),counts=rowSums(toc))
+#' sc = setSoupProfile(sc,soupProf)
 setSoupProfile = function(sc,soupProfile){
   if(! 'est' %in% colnames(soupProfile))
     stop("est column missing from soupProfile")
@@ -27,6 +37,10 @@ setSoupProfile = function(sc,soupProfile){
 #' @param sc A SoupChannel object.
 #' @param clusters A named vector, where entries are the cluster IDs and names are cellIDs.  If no names are provided, the order is assumed to match the order in \code{sc$metaData}.
 #' @return An updated SoupChannel object with clustering information stored.
+#' @examples
+#' sc = load10X(system.file('extdata','toyData',package='SoupX'))
+#' mDat = read.table(system.file('extdata','toyData','metaData.tsv',package='SoupX'),sep='\t')
+#' sc = setClusters(sc,mDat$res.1)
 setClusters = function(sc,clusters){
   if(!all(colnames(sc$toc) %in% names(clusters))){
     if(length(clusters)!=nrow(sc$metaData)){
@@ -49,6 +63,9 @@ setClusters = function(sc,clusters){
 #' @param contFrac The contamination fraction.  Either a constant, in which case the same value is used for all cells, or a named vector, in which case the value is set for each cell.
 #' @param forceAccept A warning or error is usually returned for extremely high contamination fractions.  Setting this to TRUE will turn these into messages and proceed.
 #' @return A modified SoupChannel object for which the contamination (rho) has been set.
+#' @examples
+#' sc = load10X(system.file('extdata','toyData',package='SoupX'))
+#' sc = setContaminationFraction(sc,0.1)
 setContaminationFraction = function(sc,contFrac,forceAccept=FALSE){
   #Never want to let this through no matter what
   if(any(contFrac>1))
@@ -83,6 +100,10 @@ setContaminationFraction = function(sc,contFrac,forceAccept=FALSE){
 #' @param DR The dimension reduction coordinates (e.g., tSNE).  This must be a data.frame, with two columns giving the two dimension reduction coordinates.  The data.frame must either have row names matching the row names of sc$metaData, or be ordered in the same order as sc$metaData.
 #' @param reductName What to name the reduction (defaults to column names provided).
 #' @return A modified SoupChannel object for which the dimension reduction has been set.
+#' @examples
+#' sc = load10X(system.file('extdata','toyData',package='SoupX'))
+#' mDat = read.table(system.file('extdata','toyData','metaData.tsv',package='SoupX'),sep='\t')
+#' sc = setDR(sc,mDat[,c('tSNE_1','tSNE_2')])
 setDR = function(sc,DR,reductName=NULL){
   #If more than two columns, keep the first two
   if(ncol(DR)>2){

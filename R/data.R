@@ -39,3 +39,18 @@
 #' @docType data
 #' @source \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 "PBMC_cellBarcodes"
+
+
+#' Toy SoupChanel object
+#'
+#' A \code{\link{SoupChannel}} object created from the toy data used in examples.
+#' 
+#' The toy data is created from a modified version of the extremely reduced \code{Seurat} \code{pbmc_small} dataset.  It includes clusters, tSNE coordinates and a flat estimate of 0.1 contamination.  It includes data for only 226 genes and 62 cells and should not be used for anything other than testing functions as it is not representative of real data in any way.
+#'
+#' @format \code{scToy} is a \code{SoupChannel} object.
+#' @usage data(scToy)
+#' @name scToy
+#' @docType data
+"scToy"
+
+
