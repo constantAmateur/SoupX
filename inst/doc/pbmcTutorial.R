@@ -30,14 +30,14 @@ library(SoupX)
 ## ----load_data_manual,eval=TRUE------------------------------------------
 library(Matrix)
 #Get the sparse matrix
-tod = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/matrix.mtx.gz'))
+tod = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/matrix.mtx.gz'))
 tod = readMM(tod)
 #Get the gene names
-tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/genes.tsv.gz'))
+tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/genes.tsv.gz'))
 tmp = readLines(tmp)
 rownames(tod) = make.unique(do.call(rbind,strsplit(tmp,'\t'))[,2])
 #And the droplet barcodes
-tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
+tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
 colnames(tod) = gsub('-1$','',readLines(tmp))
 #Load PBMC data to get cellular barcodes
 toc = tod[,PBMC_cellBarcodes]
