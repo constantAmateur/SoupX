@@ -6,7 +6,7 @@
 #'
 #' This set of marker genes is filtered down to include only the genes that are highly expressed in the soup, controlled by the \code{soupQuantile} parameter.  Genes highly expressed in the soup provide a more precise estimate of the contamination fraction.
 #'
-#' The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
+#' The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination=max(contaminationRange)} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
 #'
 #' For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
 #' 
@@ -16,7 +16,7 @@
 #' @param tfidfMin Minimum value of tfidf to accept for a marker gene.
 #' @param soupQuantile Only use genes that are at or above this expression quantile in the soup.  This prevents inaccurate estimates due to using genes with poorly constrained contribution to the background.
 #' @param maxMarkers If we have heaps of good markers, keep only the best \code{maxMarkers} of them.
-#' @param maximumContamination What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.
+#' @param contaminationRange Vector of length 2 that constrains the contamination fraction to lie within this range.  Must be between 0 and 1.  The high end of this range is passed to \code{\link{estimateNonExpressingCells}} as \code{maximumContamination}.
 #' @param rhoMaxFDR False discovery rate passed to \code{\link{estimateNonExpressingCells}}, to test if rho is less than \code{maximumContamination}.
 #' @param priorRho Mode of gamma distribution prior on contamination fraction.
 #' @param priorRhoStdDev Standard deviation of gamma distribution prior on contamination fraction.
@@ -34,7 +34,7 @@
 #' scToy = autoEstCont(scToy,verbose=FALSE,doPlot=FALSE)
 #' @importFrom stats dgamma qgamma 
 #' @importFrom graphics abline lines legend plot
-autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMarkers=100,maximumContamination=0.8,rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){
+autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMarkers=100,contaminationRange=c(0.01,0.8),rhoMaxFDR=0.2,priorRho=0.05,priorRhoStdDev=0.10,doPlot=TRUE,forceAccept=FALSE,verbose=TRUE){
   if(!'clusters' %in% colnames(sc$metaData))
     stop("Clustering information must be supplied, run setClusters first.")
   #First collapse by cluster
@@ -82,7 +82,7 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMark
   #Get which ones we'd use and where with canonical method
   tmp = as.list(tgts)
   names(tmp) = tgts
-  ute = estimateNonExpressingCells(sc,tmp,maximumContamination=maximumContamination,FDR=rhoMaxFDR)
+  ute = estimateNonExpressingCells(sc,tmp,maximumContamination=max(contaminationRange),FDR=rhoMaxFDR)
   m = rownames(sc$metaData)[match(rownames(ssc$metaData),sc$metaData$clusters)]
   ute = t(ute[m,,drop=FALSE])
   colnames(ute) = rownames(ssc$metaData)
@@ -96,7 +96,7 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMark
   #We're done, but record some extra data for fun and profit
   #Filter out the shite
   #Get the p-value for this being less than 1
-  pp = ppois(obsCnts,expCnts*maximumContamination,lower.tail=TRUE)
+  pp = ppois(obsCnts,expCnts*max(contaminationRange),lower.tail=TRUE)
   qq = p.adjust(pp,method='BH')
   qq = matrix(qq,nrow=nrow(pp),ncol=ncol(pp),dimnames=dimnames(pp))
   #Get the cluster level ratio
@@ -146,8 +146,9 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMark
   #Calculate prior curve
   xx=dgamma(rhoProbes,k,scale=theta)
   #Get estimates
-  rhoEst = rhoProbes[which.max(tmp)]
-  rhoFWHM = range(rhoProbes[which(tmp>=(max(tmp)/2))])
+  w = which(rhoProbes>=contaminationRange[1] & rhoProbes<=contaminationRange[2])
+  rhoEst = (rhoProbes[w])[which.max(tmp[w])]
+  rhoFWHM = range((rhoProbes[w])[which(tmp[w]>=(max(tmp[w])/2))])
   contEst = rhoEst
   if(verbose)
     message(sprintf("Estimated global rho of %.2f",rhoEst))

@@ -10,7 +10,7 @@ autoEstCont(
   tfidfMin = 1,
   soupQuantile = 0.9,
   maxMarkers = 100,
-  maximumContamination = 0.8,
+  contaminationRange = c(0.01, 0.8),
   rhoMaxFDR = 0.2,
   priorRho = 0.05,
   priorRhoStdDev = 0.1,
@@ -30,7 +30,7 @@ autoEstCont(
 
 \item{maxMarkers}{If we have heaps of good markers, keep only the best \code{maxMarkers} of them.}
 
-\item{maximumContamination}{What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.}
+\item{contaminationRange}{Vector of length 2 that constrains the contamination fraction to lie within this range.  Must be between 0 and 1.  The high end of this range is passed to \code{\link{estimateNonExpressingCells}} as \code{maximumContamination}.}
 
 \item{rhoMaxFDR}{False discovery rate passed to \code{\link{estimateNonExpressingCells}}, to test if rho is less than \code{maximumContamination}.}
 
@@ -55,7 +55,7 @@ This set of marker genes is filtered to include only those with tf-idf value gre
 
 This set of marker genes is filtered down to include only the genes that are highly expressed in the soup, controlled by the \code{soupQuantile} parameter.  Genes highly expressed in the soup provide a more precise estimate of the contamination fraction.
 
-The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
+The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination=max(contaminationRange)} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
 
 For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
 }
