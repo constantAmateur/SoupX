@@ -31,7 +31,7 @@ To do this, gene expression is binarised in each cell so each cell is either con
 \examples{
 #Calculate markers of clusters in toy data
 mrks = quickMarkers(scToy$toc,scToy$metaData$clusters)
-\donttest{
+\dontrun{
 #Calculate markers from Seurat (v3) object
 mrks = quickMarkers(srat@assays$RNA@count,srat@active.ident)
 }

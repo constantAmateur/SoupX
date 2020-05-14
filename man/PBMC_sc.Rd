@@ -17,12 +17,14 @@ data(PBMC_sc)
 \details{
 \code{PBMC_sc} was created by running the following commands.
 \itemize{
+  \item \code{set.seed(1137)}
   \item \code{tmpDir = tempdir(check=TRUE)}
   \item \code{download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'tod.tar.gz'))}
   \item \code{download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'toc.tar.gz'))}
   \item \code{untar(file.path(tmpDir,'tod.tar.gz'),exdir=tmpDir)}
   \item \code{untar(file.path(tmpDir,'toc.tar.gz'),exdir=tmpDir)}
-  \item \code{PBMC_sc = SoupX::load10X(tmpDir)}
+  \item \code{library(SoupX)}
+  \item \code{PBMC_sc = load10X(tmpDir)}
 }
 }
 \keyword{datasets}

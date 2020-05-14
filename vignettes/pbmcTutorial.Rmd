@@ -140,7 +140,7 @@ However, there are some bits of meta data that are so essential that they have t
 
 ```{r set_clustering}
 data(PBMC_metaData)
-sc = setClusters(sc,PBMC_metaData$Cluster)
+sc = setClusters(sc,setNames(PBMC_metaData$Cluster,rownames(PBMC_metaData)))
 ```
 
 It can also be very useful to be able to visualise our data by providing some kind of dimension reduction for the data.  We can do this by running,
@@ -173,8 +173,9 @@ SoupX does not have any of its own functions for generating tSNE (or any other r
 Suppose that we are interested in the expression of the gene _IGKC_, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express _IGKC_ by extracting the counts for it from the `SoupChannel` object.
 
 ```{r plot_IGKC}
-PBMC_metaData$IGKC = sc$toc['IGKC',rownames(PBMC_metaData)]
-gg = ggplot(PBMC_metaData,aes(RD1,RD2)) +
+dd = PBMC_metaData[colnames(sc$toc),]
+dd$IGKC = sc$toc['IGKC',]
+gg = ggplot(dd,aes(RD1,RD2)) +
   geom_point(aes(colour=IGKC>0))
 plot(gg)
 ```
@@ -416,13 +417,9 @@ which shows us that the expression has been heavily decreased in the areas where
 ```{r change_plots}
 plotChangeMap(sc,out,'LYZ')
 plotChangeMap(sc,out,'CD74')
-plotChangeMap(sc,out,'HLA-DRA')
 plotChangeMap(sc,out,'IL32')
 plotChangeMap(sc,out,'TRAC')
-plotChangeMap(sc,out,'CD3D')
 plotChangeMap(sc,out,'S100A9')
-plotChangeMap(sc,out,'S100A8')
-plotChangeMap(sc,out,'LTB')
 plotChangeMap(sc,out,'NKG7')
 plotChangeMap(sc,out,'GNLY')
 plotChangeMap(sc,out,'CD4')
