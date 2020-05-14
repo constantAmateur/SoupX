@@ -90,37 +90,38 @@ SoupX comes with a convenience function for loading 10X data processed using cel
 sc = load10X(tmpDir)
 ```
 
-This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  We will take this approach in this vignette to demonstrate "manual" constrution.  A dataset `PBMC` is bundled with SoupX, which includes meta data (`PBMC_DR`) and cellular barcodes (`PBMC_cellBarcodes'), but not the raw table of droplets.  To load all the PBMC data and create a `SoupChannel` object run,
+This will load the 10X data into a `SoupChannel` object.  This is just a list with some special properties, storing all the information associated with a single 10X channel.  A `SoupChannel` object can also be created manually by supplying a table of droplets and a table of counts.  Assuming you have followed the above code to download the PBMC data, you could manually construct a `SoupChannel` by running,
 
-```{r load_data_manual,eval=TRUE}
-library(Matrix)
-#Get the sparse matrix
-tod = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/matrix.mtx.gz'))
-tod = readMM(tod)
-#Get the gene names
-tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/genes.tsv.gz'))
-tmp = readLines(tmp)
-rownames(tod) = make.unique(do.call(rbind,strsplit(tmp,'\t'))[,2])
-#And the droplet barcodes
-tmp = gzcon(url('https://github.com/constantAmateur/SoupX/raw/devel/inst/extdata/PBMC_4k/raw_gene_bc_matrices/GRCh38/barcodes.tsv.gz'))
-colnames(tod) = gsub('-1$','',readLines(tmp))
-#Load PBMC data to get cellular barcodes
-toc = tod[,PBMC_cellBarcodes]
+```{r load_data_manual,eval=FALSE}
+toc = Seurat::Read10X(file.path(tmpDir,'filtered_gene_bc_matrices','GRCh38'))
+tod = Seurat::Read10X(file.path(tmpDir,'raw_gene_bc_matrices','GRCh38'))
 sc = SoupChannel(tod,toc)
+```
+
+To avoid downloading or including large data files, this vignette will use a pre-loaded and processed object `PBMC_sc`.
+
+```{r load_saved}
+data(PBMC_sc)
+sc = PBMC_sc
+sc
 ```
 
 ## Profiling the soup
 
 Having loaded our data, the first thing to do is to estimate what the expression profile of the soup looks like.  This is actually done for us automatically by the object construction function `SoupChannel` called by `load10X`.  Usually, the default estimation is fine, but it can be done explicitly by setting `calcSoupProfile=FALSE` as follows
 
-```{r estimateSoup, eval=TRUE}
+```{r estimateSoup, eval=FALSE}
 sc = SoupChannel(tod,toc,calcSoupProfile=FALSE)
 sc = estimateSoup(sc)
 ```
 
-One reason you may want to do this is if you have some other way of estimating the soup.  For example, if you only have access to the table of counts then you might want to set the soup profile to be the average across all cells which is highly correlated with the contamination.  This can be done by running
+Note that we cannot perform this operation using our pre-saved `PBMC_sc` data as the table of droplets is dropped once the soup profile has been generated to save memory.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
+
+Usually the only reason to not have `estimateSoup` run automatically with the default values is if you want to change the default parameters or have some other way of calculating the soup profile.  One case where you may want to do the latter is if you only have the table of counts available and not the empty droplets.  In this case you can proceed by running
 
 ```{r estimateNoDrops, eval=TRUE}
+library(Matrix)
+toc = sc$toc
 scNoDrops = SoupChannel(toc,toc,calcSoupProfile=FALSE)
 #Calculate soup profile
 soupProf = data.frame(row.names = rownames(toc),
@@ -129,28 +130,23 @@ soupProf = data.frame(row.names = rownames(toc),
 scNoDrops = setSoupProfile(scNoDrops,soupProf)
 ```
 
-Which modifies the `SoupChannel` object to add estimates of the soup expression profile.
-
-By default, when the soup is estimated using `estimateSoup` the table of droplets `tod` is dropped from the `SoupChannel` object to reduce the memory requirements.  Generally, we don't need the full table of droplets once we have determined what the soup looks like.
+In this case the `setSoupProfile` command is used instead of `estimateSoup` and directly adds the custom estimation of the soup profile to the `SoupChannel` object.  Note that we have loaded the `Matrix` library to help us manipulate the sparse matrix `toc`.
 
 ## Adding extra meta data to the SoupChannel object
 
-We have some extra meta data that it is essential we include in our `SoupChannel` object.  In general you can add any meta data by providing a `data.frame` with row names equal to the column names of the `toc` when building the `SoupChannel` object.  To save time, some meta data for the PBMC data has been bundled with SoupX, which we can load in like this,
+We have some extra meta data that it is essential we include in our `SoupChannel` object.  In general you can add any meta data by providing a `data.frame` with row names equal to the column names of the `toc` when building the `SoupChannel` object.  
 
-```{r load_data_with_mDat, eval=TRUE}
-scWithMdat = SoupChannel(tod,toc,metaData=PBMC_DR)
-```
-
-However, there are some bits of meta data that are so essential that they have their own special loading functions.  The most essential is clustering information.  Without it, SoupX will still work, but you won't be able to automatically estimate the contamination fraction and the correction step will be far less effective.  We can add clustering data by running,
+However, there are some bits of meta data that are so essential that they have their own special loading functions.  The most essential is clustering information.  Without it, SoupX will still work, but you won't be able to automatically estimate the contamination fraction and the correction step will be far less effective.  Metadata associated with our PBMC dataset is also bundled with SoupX.  We can use it to add clustering data by running,
 
 ```{r set_clustering}
-sc = setClusters(sc,PBMC_DR$Cluster)
+data(PBMC_metaData)
+sc = setClusters(sc,PBMC_metaData$Cluster)
 ```
 
 It can also be very useful to be able to visualise our data by providing some kind of dimension reduction for the data.  We can do this by running,
 
 ```{r add_DR}
-sc = setDR(sc,PBMC_DR)
+sc = setDR(sc,PBMC_metaData[,c('RD1','RD2')])
 ```
 
 This is usually not needed when using the `load10X` function as the cellranger produced values are automatically loaded.
@@ -163,8 +159,8 @@ Let's start by getting a general overview of our PBMC data by plotting it with t
 
 ```{r plot_annot}
 library(ggplot2)
-mids = aggregate(cbind(RD1,RD2) ~ Annotation,data=PBMC_DR,FUN=mean)
-gg = ggplot(PBMC_DR,aes(RD1,RD2)) + 
+mids = aggregate(cbind(RD1,RD2) ~ Annotation,data=PBMC_metaData,FUN=mean)
+gg = ggplot(PBMC_metaData,aes(RD1,RD2)) + 
   geom_point(aes(colour=Annotation),size=0.2) +
   geom_label(data=mids,aes(label=Annotation)) +
   ggtitle('PBMC 4k Annotation') +
@@ -177,8 +173,8 @@ SoupX does not have any of its own functions for generating tSNE (or any other r
 Suppose that we are interested in the expression of the gene _IGKC_, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express _IGKC_ by extracting the counts for it from the `SoupChannel` object.
 
 ```{r plot_IGKC}
-PBMC_DR$IGKC = sc$toc['IGKC',rownames(PBMC_DR)]
-gg = ggplot(PBMC_DR,aes(RD1,RD2)) +
+PBMC_metaData$IGKC = sc$toc['IGKC',rownames(PBMC_metaData)]
+gg = ggplot(PBMC_metaData,aes(RD1,RD2)) +
   geom_point(aes(colour=IGKC>0))
 plot(gg)
 ```
@@ -290,13 +286,7 @@ The default values place only a very weak constraint, as can be seen by setting 
 sc = autoEstCont(sc,priorRhoStdDev=0.3)
 ```
 
-which gives the same answer up to two significant figures.  Of course you can break things if you start setting strong, badly motivated priors, such as... 
-
-```{r auto_est_stupid_prior}
-sc = autoEstCont(sc,priorRho=0.3,priorRhoStdDev=0.05)
-```
-
-So please don't do this.
+which gives the same answer up to two significant figures.  Of course you can break things if you start setting strong, badly motivated priors, so please don't do this.
 
 ### The manual way
 
@@ -356,7 +346,7 @@ You'll notice that above we set `clusters=FALSE` which stops SoupX from using cl
 
 ```{r calcNullMatrixWithClustering}
 useToEst = estimateNonExpressingCells(sc,nonExpressedGeneList = list(IG=igGenes))
-plotMarkerMap(sc,geneSet=igGenes,DR=PBMC_DR,useToEst=useToEst)
+plotMarkerMap(sc,geneSet=igGenes,useToEst=useToEst)
 ```
 
 As you can see the set of cells to be used for estimation with the `igGenes` set has decreased.  In this case it makes not much difference, but in general it is better to provide clustering and be conservative.

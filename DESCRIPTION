@@ -1,7 +1,7 @@
 Package: SoupX
 Title: Single Cell mRNA Soup eXterminator
-Version: 1.4.3
-Date: 2020-05-10
+Version: 1.4.4
+Date: 2020-05-14
 Author: Matthew Daniel Young
 Maintainer: Matthew Daniel Young <my4@sanger.ac.uk>
 Description: Quantify, profile and remove ambient mRNA contamination (the "soup") from droplet based single cell RNA-seq experiments.  Implements the method described in Young et al. (2018) <doi:10.1101/303727>.
