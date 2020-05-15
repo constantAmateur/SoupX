@@ -50,7 +50,6 @@
 #' @source \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 "PBMC_sc"
 
-
 #' Toy SoupChanel object
 #'
 #' A \code{\link{SoupChannel}} object created from the toy data used in examples.

@@ -40,7 +40,7 @@ autoEstCont(
 
 \item{doPlot}{Create a plot showing the density of estimates?}
 
-\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.}
+\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.  Should we allow very high contamination fractions to be used.}
 
 \item{verbose}{Be verbose?}
 }

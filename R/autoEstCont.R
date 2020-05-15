@@ -21,7 +21,7 @@
 #' @param priorRho Mode of gamma distribution prior on contamination fraction.
 #' @param priorRhoStdDev Standard deviation of gamma distribution prior on contamination fraction.
 #' @param doPlot Create a plot showing the density of estimates?
-#' @param forceAccept Passed to \code{\link{setContaminationFraction}}.
+#' @param forceAccept Passed to \code{\link{setContaminationFraction}}.  Should we allow very high contamination fractions to be used.
 #' @param verbose Be verbose?
 #' @seealso quickMarkers
 #' @return A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in the slot \code{fit}
