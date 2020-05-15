@@ -96,7 +96,7 @@ plotMarkerDistribution = function(sc,nonExpressedGeneList,maxCells=150,tfidfMin=
   globalRhos=c()
   for(i in seq_along(nonExpressedGeneList)){
     if(sum(nullMat[,i])>0){
-      tmp = calculateContaminationFraction(sc,nonExpressedGeneList[i],nullMat[,i,drop=FALSE])
+      tmp = suppressMessages(calculateContaminationFraction(sc,nonExpressedGeneList[i],nullMat[,i,drop=FALSE],forceAccept=TRUE))
       globalRhos = c(globalRhos,tmp$metaData$rho[1])
     }else{
       globalRhos = c(globalRhos,NA)

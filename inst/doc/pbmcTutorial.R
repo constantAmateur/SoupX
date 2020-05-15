@@ -140,16 +140,16 @@ tail(sort(rowSums(sc$toc>out)/rowSums(sc$toc>0)),n=20)
 ## ----IGKC_change---------------------------------------------------------
 plotChangeMap(sc,out,'IGKC')
 
-## ----change_plots--------------------------------------------------------
-plotChangeMap(sc,out,'LYZ')
-plotChangeMap(sc,out,'CD74')
-plotChangeMap(sc,out,'IL32')
-plotChangeMap(sc,out,'TRAC')
-plotChangeMap(sc,out,'S100A9')
-plotChangeMap(sc,out,'NKG7')
-plotChangeMap(sc,out,'GNLY')
-plotChangeMap(sc,out,'CD4')
-plotChangeMap(sc,out,'CD8A')
+## ----change_plots,eval=FALSE---------------------------------------------
+#  plotChangeMap(sc,out,'LYZ')
+#  plotChangeMap(sc,out,'CD74')
+#  plotChangeMap(sc,out,'IL32')
+#  plotChangeMap(sc,out,'TRAC')
+#  plotChangeMap(sc,out,'S100A9')
+#  plotChangeMap(sc,out,'NKG7')
+#  plotChangeMap(sc,out,'GNLY')
+#  plotChangeMap(sc,out,'CD4')
+#  plotChangeMap(sc,out,'CD8A')
 
 ## ----writeOut,eval=FALSE-------------------------------------------------
 #  DropletUtils:::write10xCounts('./strainedCounts',out)

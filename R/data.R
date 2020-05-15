@@ -29,7 +29,7 @@
 
 #' SoupChannel from PBMC data
 #'
-#' \code{\link{SoupChannel}} created from 10X demonstration PBMC 4k data.
+#' \code{\link{SoupChannel}} created from 10X demonstration PBMC 4k data.  The cells have been sub-sampled by a factor of 2 to reduce file size of package.
 #' 
 #' \code{PBMC_sc} was created by running the following commands.
 #' \itemize{
@@ -40,10 +40,11 @@
 #'   \item \code{untar(file.path(tmpDir,'tod.tar.gz'),exdir=tmpDir)}
 #'   \item \code{untar(file.path(tmpDir,'toc.tar.gz'),exdir=tmpDir)}
 #'   \item \code{library(SoupX)}
-#'   \item \code{PBMC_sc = load10X(tmpDir)}
+#'   \item \code{PBMC_sc = load10X(tmpDir,calcSoupProfile=FALSE)}
+#'   \item \code{PBMC_sc = SoupChannel(PBMC_sc$tod,PBMC_sc$toc[,sample(ncol(PBMC_sc$toc),round(ncol(PBMC_sc$toc)*0.5))])}
 #' }
 #' 
-#' @format \code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 4,340 cells.
+#' @format \code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 2,170 cells.
 #' @usage data(PBMC_sc)
 #' @name PBMC_sc
 #' @docType data

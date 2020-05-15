@@ -370,7 +370,7 @@ At this point all the hard work has been done.  To estimate the contamination fr
 sc = calculateContaminationFraction(sc,list(IG=igGenes),useToEst=useToEst)
 ```
 
-This function will modify the `metaData` table of `sc` object to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction of $\sim 5$%, compared to $\sim 6$% for the automatic method.
+This function will modify the `metaData` table of `sc` object to add a table giving the contamination fraction estimate.  This approach gives a contamination fraction very close to the automatic method.
 
 ```{r viewCont}
 head(sc$metaData)
@@ -419,9 +419,11 @@ Way back at the start, we did a quick visualisation to look at how the ratio of 
 plotChangeMap(sc,out,'IGKC')
 ```
 
-which shows us that the expression has been heavily decreased in the areas where it was very surprising to observe it before.  Let's take a look at the expression of some other genes.
+which shows us that the expression has been heavily decreased in the areas where it was very surprising to observe it before.  
 
-```{r change_plots}
+The interpretation of which cells are expressing which genes can change quite dramatically when we correct for soup contamination. You should explore this yourself by plotting a variety of different genes and seeing which change and which do not.  For example, you could look at,
+
+```{r change_plots,eval=FALSE}
 plotChangeMap(sc,out,'LYZ')
 plotChangeMap(sc,out,'CD74')
 plotChangeMap(sc,out,'IL32')
@@ -433,9 +435,8 @@ plotChangeMap(sc,out,'CD4')
 plotChangeMap(sc,out,'CD8A')
 ```
 
-Clearly the interpretation of which cells are expressing these genes changes quite dramatically when we correct for soup contamination.  I have included plots of _CD4_ and _CD8_ to show that genes that are not highly expressed in the soup are essentially unchanged by the soup correction.
+In general, the changes tend to be largest for genes that are highly expressed but only in a specific context.
 
-The change in pattern will be interesting for many other genes, feel free to explore for yourself.  In general, the changes tend to be largest for genes that are highly expressed but only in a specific context.
 
 ## Integrating with downstream tools
 

@@ -4,7 +4,7 @@
 \name{PBMC_sc}
 \alias{PBMC_sc}
 \title{SoupChannel from PBMC data}
-\format{\code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 4,340 cells.}
+\format{\code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 2,170 cells.}
 \source{
 \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 }
@@ -12,7 +12,7 @@
 data(PBMC_sc)
 }
 \description{
-\code{\link{SoupChannel}} created from 10X demonstration PBMC 4k data.
+\code{\link{SoupChannel}} created from 10X demonstration PBMC 4k data.  The cells have been sub-sampled by a factor of 2 to reduce file size of package.
 }
 \details{
 \code{PBMC_sc} was created by running the following commands.
@@ -24,7 +24,8 @@ data(PBMC_sc)
   \item \code{untar(file.path(tmpDir,'tod.tar.gz'),exdir=tmpDir)}
   \item \code{untar(file.path(tmpDir,'toc.tar.gz'),exdir=tmpDir)}
   \item \code{library(SoupX)}
-  \item \code{PBMC_sc = load10X(tmpDir)}
+  \item \code{PBMC_sc = load10X(tmpDir,calcSoupProfile=FALSE)}
+  \item \code{PBMC_sc = SoupChannel(PBMC_sc$tod,PBMC_sc$toc[,sample(ncol(PBMC_sc$toc),round(ncol(PBMC_sc$toc)*0.5))])}
 }
 }
 \keyword{datasets}
