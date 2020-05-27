@@ -9,8 +9,6 @@ calculateContaminationFraction(
   nonExpressedGeneList,
   useToEst,
   verbose = TRUE,
-  cellSpecificEstimates = FALSE,
-  stanParams = list(chains = 1, warmup = 8000, iter = 24000, cores = 1),
   forceAccept = FALSE
 )
 }
@@ -22,10 +20,6 @@ calculateContaminationFraction(
 \item{useToEst}{A boolean matrix of dimensions ncol(toc) x length(nonExpressedGeneList) indicating which gene-sets should not be assumed to be non-expressed in each cell.  Row names must correspond to the names of \code{nonExpressedGeneList}.  Usually produced by \code{\link{estimateNonExpressingCells}}.}
 
 \item{verbose}{Print best estimate.}
-
-\item{cellSpecificEstimates}{Allow the estimated contamination fraction to differ at the individual cell level.  Note that this approach is MUCH slower.}
-
-\item{stanParams}{Extra parameters passed to \code{rstan::stan}, when \code{cellSpecificEstimates=TRUE}.}
 
 \item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.}
 }
@@ -40,9 +34,9 @@ Secondly, this function needs to know which cells definitely do not express the 
 
 Most often, the genesets are user supplied based on your knowledge of the experiment and the cells in which they are genuinely expressed is estimated using \code{\link{estimateNonExpressingCells}}.  However, they can also be supplied directly if other information is available.
 
-Usually, there is very little variation in the contamination fraction within a channel and very little power to detect the contamination accurately at a single cell level.  As such, the default mode of operation simply estimates one value of the contamination fraction that is applied to all cells in a channel.  However, to allow for circumstances where there is good power to detect fine grained contamination differences, a cell-specific estimation procedure can be invoked by setting \code{cellSpecificEstimates=TRUE}.
+Usually, there is very little variation in the contamination fraction within a channel and very little power to detect the contamination accurately at a single cell level.  As such, the default mode of operation simply estimates one value of the contamination fraction that is applied to all cells in a channel.
 
-The global model fits a simple Poisson glm to the aggregated count data across all cells.  The cell-specific model uses hierarchical Bayes estimation using STAN to share information between cells.  Note that this takes much longer and should only be used if you have a convincing reason.  In the most cases, a global estimate will do a good job.
+The global model fits a simple Poisson glm to the aggregated count data across all cells.
 
 Finally, note that if you are not able to find a reliable set of genes to use for contamination estimation, or you do not trust the values produced, the contamination fraction can be manually set by the user using \code{\link{setContaminationFraction}}.
 }
