@@ -4,9 +4,9 @@
 #'
 #' This essentially subtracts off the mean expected background counts for each gene, then redistributes any "unused" counts.  A count is unused if its subtraction has no effect.  For example, subtracting a count from a gene that has zero counts to begin with.
 #'
-#' As expression data is highly sparse at the single cell level, it is highly recommended that clustering information be provided to allow the subtraction method to share information between cells.  Without grouping cells into clusters, it is difficult (and usually impossible) to tell the difference between a count of 1 due to background contamination and a count of 1 due to endogenous expression.  This ambiguity is removed at the cluster level where counts can be aggregated across cells.  This information can then be propogated back to the individual cell level to provide a more accurate removal of contaminating counts.
+#' As expression data is highly sparse at the single cell level, it is highly recommended that clustering information be provided to allow the subtraction method to share information between cells.  Without grouping cells into clusters, it is difficult (and usually impossible) to tell the difference between a count of 1 due to background contamination and a count of 1 due to endogenous expression.  This ambiguity is removed at the cluster level where counts can be aggregated across cells.  This information can then be propagated back to the individual cell level to provide a more accurate removal of contaminating counts.
 #' 
-#' To provide clustering information, either set clustering on the SoupChannel object with \code{\link{setClusters}} or explicitly passing the \code{clusters} paramater.  
+#' To provide clustering information, either set clustering on the SoupChannel object with \code{\link{setClusters}} or explicitly passing the \code{clusters} parameter.  
 #'
 #' If \code{roundToInt=TRUE}, this function will round the result to integers.  That is, it will take the floor of the connected value and then round back up with probability equal to the fractional part of the number.
 #' 
@@ -22,8 +22,12 @@
 #' @param verbose Integer giving level of verbosity.  0 = silence, 1 = Basic information, 2 = Very chatty, 3 = Debug.
 #' @param tol Allowed deviation from expected number of soup counts.  Don't change this.
 #' @param pCut The p-value cut-off used when \code{method='soupOnly'}.
-#' @param ... Passed to expandClusters.  Of particular interest is the nCores parameter which can be used to parallelise the calculation.
+#' @param ... Passed to expandClusters.
 #' @return A modified version of the table of counts, with background contamination removed.
+#' @examples
+#' out = adjustCounts(scToy)
+#' #Return integer counts only
+#' out = adjustCounts(scToy,roundToInt=TRUE)
 #' @importFrom Matrix sparseMatrix Matrix
 #' @importFrom stats rbinom pchisq
 adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','multinomial'),roundToInt=FALSE,verbose=1,tol=1e-3,pCut=0.01,...){
@@ -200,31 +204,34 @@ adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','mult
       out = as(sc$toc,'dgTMatrix')
       expSoupCnts = sc$metaData$nUMIs * sc$metaData$rho
       soupFrac = sc$soupProfile$est
+      #Distribute counts according to the soup profile.  Could be made faster by not considering zeros, but eh.
+      out = out - do.call(cbind,lapply(seq(ncol(out)),function(e) alloc(expSoupCnts[e],out[,e],soupFrac)))
+      out = as(out,'dgTMatrix')
       #Iteratively remove until we've removed the expected number of counts
       #How many counts should we have left when we're done?
-      tgts = sc$metaData$nUMIs - expSoupCnts
+      #tgts = sc$metaData$nUMIs - expSoupCnts
       #Which genes do we still need to bother trying to remove counts from in which cells
-      toAdjust = seq_along(out@i)
-      if(verbose>0)
-        message("Subtracting contaminating counts")
-      while(TRUE){
-        #How many left to do?
-        toDo = colSums(out)-tgts
-        #Get the soup frac correction factors.
-        tmp = rep(1,length(toDo))
-        soupFracSum = sapply(split(soupFrac[out@i[toAdjust]+1],out@j[toAdjust]+1),sum)
-        tmp[as.numeric(names(soupFracSum))]=soupFracSum
-        toDo = toDo/tmp
-        #Do the adjustment
-        out@x[toAdjust] = out@x[toAdjust]-soupFrac[out@i[toAdjust]+1]*toDo[out@j[toAdjust]+1]
-        #Only keep updating those that need it
-        toAdjust = toAdjust[out@x[toAdjust]>0]
-        out@x[out@x<0]=0
-        if(verbose>1)
-          print(quantile(colSums(out)-tgts))
-        if(max(colSums(out)-tgts)<tol)
-          break
-      }
+      #toAdjust = seq_along(out@i)
+      #if(verbose>0)
+      #  message("Subtracting contaminating counts")
+      #while(TRUE){
+      #  #How many left to do?
+      #  toDo = colSums(out)-tgts
+      #  #Get the soup frac correction factors.
+      #  tmp = rep(1,length(toDo))
+      #  soupFracSum = sapply(split(soupFrac[out@i[toAdjust]+1],out@j[toAdjust]+1),sum)
+      #  tmp[as.numeric(names(soupFracSum))]=soupFracSum
+      #  toDo = toDo/tmp
+      #  #Do the adjustment
+      #  out@x[toAdjust] = out@x[toAdjust]-soupFrac[out@i[toAdjust]+1]*toDo[out@j[toAdjust]+1]
+      #  #Only keep updating those that need it
+      #  toAdjust = toAdjust[out@x[toAdjust]>0]
+      #  out@x[out@x<0]=0
+      #  if(verbose>1)
+      #    print(quantile(colSums(out)-tgts))
+      #  if(max(colSums(out)-tgts)<tol)
+      #    break
+      #}
       ##This is the clearer but slower version of above
       #out@x = pmax(0,out@x - soupFrac[out@i+1]*expSoupCnts[out@j+1])
       #while(max(colSums(out)-tgts)>tol){

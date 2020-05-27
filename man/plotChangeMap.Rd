@@ -32,3 +32,7 @@ A ggplot2 containing the plot.
 \description{
 Given some reduced dimensional representation of the data (such as UMAP or tSNE) that has been calculated however you would like, this provides a way to visualise how the expression of a geneSet changes after soup correction.
 }
+\examples{
+out = adjustCounts(scToy)
+gg = plotChangeMap(scToy,out,'S100A9')
+}

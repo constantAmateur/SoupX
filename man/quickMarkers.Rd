@@ -28,3 +28,11 @@ Term Frequency - Inverse Document Frequency is used in natural language processi
 
 To do this, gene expression is binarised in each cell so each cell is either considered to express or not each gene.  That is, we replace the counts with \code{toc > zeroCut}.  The frequency with which a gene is expressed within the target group is compared to the global frequency to calculate the tf-idf score.  We also calculate a multiple hypothesis corrected p-value based on a hypergeometric test, but this is extremely permissive.
 }
+\examples{
+#Calculate markers of clusters in toy data
+mrks = quickMarkers(scToy$toc,scToy$metaData$clusters)
+\dontrun{
+#Calculate markers from Seurat (v3) object
+mrks = quickMarkers(srat@assays$RNA@count,srat@active.ident)
+}
+}

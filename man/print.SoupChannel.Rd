@@ -11,6 +11,9 @@
 
 \item{...}{Currently unused.}
 }
+\value{
+Nothing.  Prints message to console.
+}
 \description{
 Prints a summary of a SoupChannel object.
 }

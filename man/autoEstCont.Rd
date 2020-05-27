@@ -9,7 +9,8 @@ autoEstCont(
   topMarkers = NULL,
   tfidfMin = 1,
   soupQuantile = 0.9,
-  maximumContamination = 0.8,
+  maxMarkers = 100,
+  contaminationRange = c(0.01, 0.8),
   rhoMaxFDR = 0.2,
   priorRho = 0.05,
   priorRhoStdDev = 0.1,
@@ -27,7 +28,9 @@ autoEstCont(
 
 \item{soupQuantile}{Only use genes that are at or above this expression quantile in the soup.  This prevents inaccurate estimates due to using genes with poorly constrained contribution to the background.}
 
-\item{maximumContamination}{What contamination fraction is the maximum that is plausible.  Must be a value between 0 and 1.  Passed to \code{\link{estimateNonExpressingCells}}.}
+\item{maxMarkers}{If we have heaps of good markers, keep only the best \code{maxMarkers} of them.}
+
+\item{contaminationRange}{Vector of length 2 that constrains the contamination fraction to lie within this range.  Must be between 0 and 1.  The high end of this range is passed to \code{\link{estimateNonExpressingCells}} as \code{maximumContamination}.}
 
 \item{rhoMaxFDR}{False discovery rate passed to \code{\link{estimateNonExpressingCells}}, to test if rho is less than \code{maximumContamination}.}
 
@@ -37,12 +40,12 @@ autoEstCont(
 
 \item{doPlot}{Create a plot showing the density of estimates?}
 
-\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.}
+\item{forceAccept}{Passed to \code{\link{setContaminationFraction}}.  Should we allow very high contamination fractions to be used.}
 
 \item{verbose}{Be verbose?}
 }
 \value{
-A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in a slot named 'autoEst'
+A modified SoupChannel object where the global contamination rate has been set.  Information about the estimation is also stored in the slot \code{fit}
 }
 \description{
 The idea of this method is that genes that are highly expressed in the soup and are marker genes for some population can be used to estimate the background contamination.  Marker genes are identified using the tfidf method (see \code{\link{quickMarkers}}).  The contamination fraction is then calculated at the cluster level for each of these genes and clusters are then aggressively pruned to remove those that give implausible estimates.
@@ -52,9 +55,17 @@ This set of marker genes is filtered to include only those with tf-idf value gre
 
 This set of marker genes is filtered down to include only the genes that are highly expressed in the soup, controlled by the \code{soupQuantile} parameter.  Genes highly expressed in the soup provide a more precise estimate of the contamination fraction.
 
-The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
+The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination=max(contaminationRange)} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
 
 For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
+}
+\examples{
+#Use less specific markers
+scToy = autoEstCont(scToy,tfidfMin=0.8)
+#Allow large contamination fractions to be allocated
+scToy = autoEstCont(scToy,forceAccept=TRUE)
+#Be quiet
+scToy = autoEstCont(scToy,verbose=FALSE,doPlot=FALSE)
 }
 \seealso{
 quickMarkers

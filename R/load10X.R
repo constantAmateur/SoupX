@@ -3,7 +3,7 @@
 #' Loads unfiltered 10X data from each data-set and identifies which droplets are cells using the cellranger defaults.
 #'
 #' @export
-#' @param dataDir Top level cellranger output directory (the directory that contains the "raw_gene_bc_matrices" folder).
+#' @param dataDir Top level cellranger output directory (the directory that contains the \code{raw_gene_bc_matrices} folder).
 #' @param cellIDs Barcodes of droplets that contain cells.  If NULL, use the default cellranger set.
 #' @param channelName The name of the channel to store.  If NULL set to either \code{names(dataDir)} or \code{dataDir} is no name is set.
 #' @param readArgs A list of extra parameters passed to \code{Seurat::Read10X}.
@@ -12,6 +12,8 @@
 #' @param ... Extra parameters passed to \code{SoupChannel} construction function.
 #' @return A SoupChannel object containing the count tables for the 10X dataset.
 #' @seealso SoupChannel estimateSoup
+#' @examples
+#' sc = load10X(system.file('extdata','toyData',package='SoupX'))
 #' @importFrom Seurat Read10X
 #' @importFrom utils read.csv
 load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),includeFeatures=c('Gene Expression'),verbose=TRUE,...){

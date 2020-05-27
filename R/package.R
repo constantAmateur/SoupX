@@ -17,7 +17,7 @@
 #' @importFrom stats lowess spline approx
 #' @importFrom grDevices rainbow
 #' @importFrom stats approx dpois optimise p.adjust pbinom phyper ppois qbeta
-#' @importFrom utils data read.delim setTxtProgressBar txtProgressBar
+#' @importFrom utils data read.delim setTxtProgressBar txtProgressBar head
 #' @importFrom methods as is
 NULL
 utils::globalVariables(c('RD1','RD2','nUMIs','est','lower','upper','isLogged','MarkerGroup','Values','rho','qVals','logRatio','expSoupCnts','soupProfile'))

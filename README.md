@@ -8,17 +8,29 @@ There's no way to know in advance what the contamination is in an experiment, al
 
 Even if you decide you don't want to use the SoupX correction methods for whatever reason, you should at least want to know how contaminated your data are.
 
-**NOTE:** From v1.3.0 onwards SoupX now includes an option to automatically estimate the contamination fraction.  It is anticipated that this will be the preferred way of using the method for the vast majority of users.  This function (`autoEstCont`) depends on clustering information being provided.  If you are using 10X data mapped with cellranger, this will be loaded automatically, but otherwise it must be provided explicitly by the user using `setClusters`.
+**NOTE:** From v1.3.0 onward SoupX now includes an option to automatically estimate the contamination fraction.  It is anticipated that this will be the preferred way of using the method for the vast majority of users.  This function (`autoEstCont`) depends on clustering information being provided.  If you are using 10X data mapped with cellranger, this will be loaded automatically, but otherwise it must be provided explicitly by the user using `setClusters`.
 
 ## Installation
 
-The package can be installed by running
+The latest stable release can be installed from CRAN in the usual way by running,
 
 ```R
-devtools::install_github("constantAmateur/SoupX")
+install.packages('SoupX')
 ```
 
-If you encounter errors saying `multtest` is unavalibale, please install this manually from bioconductor with:
+If you want to use the latest development version, install it by running,
+
+```R
+devtools::install_github("constantAmateur/SoupX",ref='devel')
+```
+
+Finally, if you want to use the per-cell contamination estimation (which you almost certainly won't need to), install the branch STAN
+
+```R
+devtools::install_github("constantAmateur/SoupX",ref='STAN')
+```
+
+If you encounter errors saying `multtest` is unavailable, please install this manually from bioconductor with:
 
 ```R
 BiocManager::install('multtest')
@@ -76,13 +88,17 @@ At this point we assume that you have chosen a set (or sets) of genes to use to 
 
 ## Changelog
 
+### v1.4.5 
+
+First CRAN version of the code.  The one significant change other than tweaks to reach CRAN compatibility is that the correction algorithm has been made about 20 times faster.  As such, the parallel option was no longer needed and has been removed. Also includes some other minor tweaks.
+
 ### v1.3.6
 
-Addition of `autoEstCont` function to automatically estimate tho contamination fraction without the need to specify a set of genes to use for estimation.  A number of other tweaks and bug fixes.
+Addition of `autoEstCont` function to automatically estimate the contamination fraction without the need to specify a set of genes to use for estimation.  A number of other tweaks and bug fixes.
 
 ### v1.2.1
 
-Some bug fixes from v1.0.0.  Added some helper functions for integrating metadata into SoupChannel object.  Further integration of cluster information in estimation of contamination and calculation of adjusted counts.  Make the adjustCounts routine parallel.
+Some bug fixes from v1.0.0.  Added some helper functions for integrating metadata into SoupChannel object.  Further integration of cluster information in estimation of contamination and calculation of adjusted counts.  Make the `adjustCounts` routine parallel.
 
 ### v1.0.0
 

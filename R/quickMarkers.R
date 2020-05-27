@@ -13,6 +13,13 @@
 #' @param FDR False discover rate to use. 
 #' @param expressCut Value above which a gene is considered expressed.
 #' @return data.frame with top N markers (or all that pass the hypergeometric test) and their statistics for each cluster.
+#' @examples
+#' #Calculate markers of clusters in toy data
+#' mrks = quickMarkers(scToy$toc,scToy$metaData$clusters)
+#' \dontrun{
+#' #Calculate markers from Seurat (v3) object
+#' mrks = quickMarkers(srat@assays$RNA@count,srat@active.ident)
+#' }
 quickMarkers = function(toc,clusters,N=10,FDR=0.01,expressCut=0.9){
   #Convert to the more manipulable format
   toc = as(toc,'dgTMatrix')
