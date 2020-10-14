@@ -10,7 +10,8 @@ plotChangeMap(
   geneSet,
   DR,
   dataType = c("soupFrac", "binary", "counts"),
-  logData = FALSE
+  logData = FALSE,
+  pointSize = 0.5
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ plotChangeMap(
 \item{dataType}{How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, soupFrac plots the fraction of the observed counts that are identified as contamination (i.e., (old-new)/old) for each cell and is the default.}
 
 \item{logData}{Should we log the thing we plot?}
+
+\item{pointSize}{Size of points}
 }
 \value{
 A ggplot2 containing the plot.

@@ -447,3 +447,30 @@ The corrected matrix can then be used for any downstream analysis in place of th
 ```{r writeOut,eval=FALSE}
 DropletUtils:::write10xCounts('./strainedCounts',out)
 ```
+
+### Loading into Seurat
+
+For loading into Seurat or other R packages, there is no need to save the output of SoupX to disk.  For a single channel, you can simply run the standard Seurat construction step on the output of `adjustCounts`.  That is,
+
+```{r seurat,eval=FALSE}
+library(Seurat)
+srat = CreateSeuratObject(out)
+```
+
+If you have multiple channels you want to process in SoupX then load into Seurat, you need to create a combined matrix with cells from all channels.  Assuming `scs` is a list named by experiment (e.g., `scs = list(Experiment1 = scExp1,Experiment2 = scExp2)`), this can be done by running something like:
+
+```{r seuratMulti,eval=FALSE}
+library(Seurat)
+srat = list()
+for(nom in names(scs)){
+  #Clean channel named 'nom'
+  tmp = adjustCounts(scs[[nom]])
+  #Add experiment name to cell barcodes to make them unique
+  colnames(tmp) = paste0(nom,'_',colnames(tmp))
+  #Store the result
+  srat[[nom]] = tmp
+}
+#Combine all count matricies into one matrix
+srat = do.call(cbind,srat)
+srat = CreateSeuratObject(srat)
+```
