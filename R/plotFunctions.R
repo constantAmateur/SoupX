@@ -134,10 +134,14 @@ plotMarkerDistribution = function(sc,nonExpressedGeneList,maxCells=150,tfidfMin=
 #' @param ratLims Truncate log ratios at these values.
 #' @param FDR False Discovery Rate for statistical test of enrichment over background.
 #' @param useToEst A vector (usually obtained from \code{\link{estimateNonExpressingCells}}), that will be used to mark cells instead of the usual Poisson test.
+#' @param pointSize Size of points
+#' @param pointShape Shape of points
+#' @param pointStroke Stroke size for points
+#' @param naPointSize Point size for NAs.
 #' @return A ggplot2 containing the plot.
 #' @examples
 #' gg = plotMarkerMap(scToy,'CD7')
-plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
+plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL,pointSize=2.0,pointShape=21,pointStroke=0.5,naPointSize=0.25){
   if(!is(sc,'SoupChannel'))
     stop("sc not a valid SoupChannel object.")
   #Try and get DR if missing
@@ -175,8 +179,8 @@ plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
   #Create the plot
   gg = ggplot(DR,aes(RD1,RD2)) +
     #Stick NAs underneath
-    geom_point(data=DR[is.na(DR$logRatio),],aes_string(colour=colVal),size=0.25) +
-    geom_point(data=DR[!is.na(DR$logRatio),],aes_string(fill='logRatio',colour=colVal),size=2.0,shape=21,stroke=0.5) +
+    geom_point(data=DR[is.na(DR$logRatio),],aes_string(colour=colVal),size=naPointSize) +
+    geom_point(data=DR[!is.na(DR$logRatio),],aes_string(fill='logRatio',colour=colVal),size=pointSize,shape=pointShape,stroke=pointStroke) +
     scale_colour_manual(values=c(`FALSE`='black',`TRUE`='#009933'))+
     xlab('ReducedDim1') +
     ylab('ReducedDim2') +
@@ -199,11 +203,12 @@ plotMarkerMap = function(sc,geneSet,DR,ratLims=c(-2,2),FDR=0.05,useToEst=NULL){
 #' @param DR A data.frame, with rows named by unique cell IDs (i.e., <ChannelName>_<Barcode>) the first two columns of which give the coordinates of each cell in some reduced dimension representation of the data.
 #' @param dataType How should data be represented.  Binary sets each cell to expressed or not, counts converts everything to counts, soupFrac plots the fraction of the observed counts that are identified as contamination (i.e., (old-new)/old) for each cell and is the default.
 #' @param logData Should we log the thing we plot?
+#' @param pointSize Size of points
 #' @return A ggplot2 containing the plot.
 #' @examples
 #' out = adjustCounts(scToy)
 #' gg = plotChangeMap(scToy,out,'S100A9')
-plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','binary','counts'),logData=FALSE){
+plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','binary','counts'),logData=FALSE,pointSize=0.5){
   dataType = match.arg(dataType)
   if(dataType=='binary')
     logData=FALSE
@@ -277,7 +282,7 @@ plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','bina
     zLims=c(NA,NA)
     #Now make the plot
     gg = ggplot(dfs,aes(RD1,RD2)) +
-      geom_point(aes(colour=data),size=0.5) +
+      geom_point(aes(colour=data),size=pointSize) +
       xlab('ReducedDim1') +
       ylab('ReducedDim2') +
       labs(colour='geneSet') + 

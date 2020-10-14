@@ -154,3 +154,22 @@ plotChangeMap(sc,out,'IGKC')
 ## ----writeOut,eval=FALSE-------------------------------------------------
 #  DropletUtils:::write10xCounts('./strainedCounts',out)
 
+## ----seurat,eval=FALSE---------------------------------------------------
+#  library(Seurat)
+#  srat = CreateSeuratObject(out)
+
+## ----seuratMulti,eval=FALSE----------------------------------------------
+#  library(Seurat)
+#  srat = list()
+#  for(nom in names(scs)){
+#    #Clean channel named 'nom'
+#    tmp = adjustCounts(scs[[nom]])
+#    #Add experiment name to cell barcodes to make them unique
+#    colnames(tmp) = paste0(nom,'_',colnames(tmp))
+#    #Store the result
+#    srat[[nom]] = tmp
+#  }
+#  #Combine all count matricies into one matrix
+#  srat = do.call(cbind,srat)
+#  srat = CreateSeuratObject(srat)
+

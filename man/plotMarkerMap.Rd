@@ -4,7 +4,18 @@
 \alias{plotMarkerMap}
 \title{Plot ratio of observed to expected counts on reduced dimension map}
 \usage{
-plotMarkerMap(sc, geneSet, DR, ratLims = c(-2, 2), FDR = 0.05, useToEst = NULL)
+plotMarkerMap(
+  sc,
+  geneSet,
+  DR,
+  ratLims = c(-2, 2),
+  FDR = 0.05,
+  useToEst = NULL,
+  pointSize = 2,
+  pointShape = 21,
+  pointStroke = 0.5,
+  naPointSize = 0.25
+)
 }
 \arguments{
 \item{sc}{SoupChannel object.}
@@ -18,6 +29,14 @@ plotMarkerMap(sc, geneSet, DR, ratLims = c(-2, 2), FDR = 0.05, useToEst = NULL)
 \item{FDR}{False Discovery Rate for statistical test of enrichment over background.}
 
 \item{useToEst}{A vector (usually obtained from \code{\link{estimateNonExpressingCells}}), that will be used to mark cells instead of the usual Poisson test.}
+
+\item{pointSize}{Size of points}
+
+\item{pointShape}{Shape of points}
+
+\item{pointStroke}{Stroke size for points}
+
+\item{naPointSize}{Point size for NAs.}
 }
 \value{
 A ggplot2 containing the plot.
