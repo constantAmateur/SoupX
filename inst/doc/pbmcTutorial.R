@@ -23,8 +23,8 @@ library(SoupX)
 
 ## ----download,eval=FALSE-------------------------------------------------
 #  tmpDir = tempdir(check=TRUE)
-#  download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'tod.tar.gz'))
-#  download.file('http://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'toc.tar.gz'))
+#  download.file('https://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_raw_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'tod.tar.gz'))
+#  download.file('https://cf.10xgenomics.com/samples/cell-exp/2.1.0/pbmc4k/pbmc4k_filtered_gene_bc_matrices.tar.gz',destfile=file.path(tmpDir,'toc.tar.gz'))
 #  untar(file.path(tmpDir,'tod.tar.gz'),exdir=tmpDir)
 #  untar(file.path(tmpDir,'toc.tar.gz'),exdir=tmpDir)
 
