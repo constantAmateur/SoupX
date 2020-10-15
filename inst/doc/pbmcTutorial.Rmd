@@ -20,7 +20,7 @@ opts_chunk$set(tidy=TRUE)
 
 # Introduction
 
-Before we get started with the specifics of example data sets and using the R package, it is worth understanding at a broad level what the problem this package aims to solve is and how it goes about doing it.  Of course, the best way of doing this is by [reading the pre-print](https://www.biorxiv.org/content/early/2018/04/20/303727), it's not long I promise.  But if you can't be bothered doing that or just want a refresher, I'll try and recap the main points.
+Before we get started with the specifics of example data sets and using the R package, it is worth understanding at a broad level what the problem this package aims to solve is and how it goes about doing it.  Of course, the best way of doing this is by [reading the pre-print](https://www.biorxiv.org/content/10.1101/303727v1), it's not long I promise.  But if you can't be bothered doing that or just want a refresher, I'll try and recap the main points.
 
 In droplet based, single cell RNA-seq experiments, there is always a certain amount of background mRNAs present in the dilution that gets distributed into the droplets with cells and sequenced along with them.  The net effect of this is to produce a background contamination that represents expression not from the cell contained within a droplet, but the solution that contained the cells.
 
@@ -176,7 +176,7 @@ gg = ggplot(dd,aes(RD1,RD2)) +
 plot(gg)
 ```
 
-SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else.  In this case I have run [Seurat](http://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data (see `?PBMC`).
+SoupX does not have any of its own functions for generating tSNE (or any other reduced dimension) co-ordinates, so it is up to us to generate them using something else.  In this case I have run [Seurat](https://satijalab.org/seurat/) in a standard way and produced a tSNE map of the data (see `?PBMC`).
 
 Suppose that we are interested in the expression of the gene _IGKC_, a key component immunoglobulins (i.e., antibodies) highly expressed by B-cells.  We can quickly visualise which cells express _IGKC_ by extracting the counts for it from the `SoupChannel` object.
 
