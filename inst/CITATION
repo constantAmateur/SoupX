@@ -4,11 +4,11 @@ note = sprintf('R package version %s',meta$Version)
 bibentry(bibtype = "article",
   author = c(person(c("Matthew",'D'),'Young'),
              person("Sam",'Behjati')),
-  title = "{SoupX} removes ambient RNA contamination from droplet based single-cell RNA sequencing data",
-  journal = "bioRxiv",
-  year = 2018,
-  doi = "10.1101/303727",
+  title = "{SoupX} removes ambient RNA contamination from droplet-based single-cell RNA sequencing data",
+  journal = "GigaScience",
+  year = 2020,
+  doi = "10.1093/gigascience/giaa151",
   textVersion = 
-  "Young, M.D., Behjati, S. (2018). SoupX removes ambient RNA contamination from droplet based single-cell RNA sequencing data. bioRxiv, 303727"
+  "Young, M.D., Behjati, S. (2020). SoupX removes ambient RNA contamination from droplet-based single-cell RNA sequencing data, GigaScience, Volume 9, Issue 12, December 2020, giaa151bioRxiv, 303727, https://doi.org/10.1093/gigascience/giaa151"
 )
 

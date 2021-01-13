@@ -30,9 +30,10 @@ load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),include
   if(verbose)
     message(sprintf("Loading cell-only count data"))
   if(!is.null(cellIDs)){
-    #Do the same sripping that Seurat does on IDs
-    if(all(grepl('\\-1$',cellIDs)))
-      cellIDs = gsub('\\-1$','',cellIDs)
+    #This is now redundant as we require the version of Seurat that does not strip the suffix
+    ####Do the same sripping that Seurat does on IDs
+    ###if(all(grepl('\\-1$',cellIDs)))
+    ###  cellIDs = gsub('\\-1$','',cellIDs)
     #Check we have the IDs
     if(!all(cellIDs %in% colnames(dat)))
       stop("Not all supplied cellIDs found in raw data.")

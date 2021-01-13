@@ -4,7 +4,9 @@
 \name{PBMC_sc}
 \alias{PBMC_sc}
 \title{SoupChannel from PBMC data}
-\format{\code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 2,170 cells.}
+\format{
+\code{PBMC_sc} is a \code{SoupChannel} object with 33,694 genes and 2,170 cells.
+}
 \source{
 \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 }
