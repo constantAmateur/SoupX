@@ -60,11 +60,19 @@ out = adjustCounts(sc)
 
 ## Documentation
 
-The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1101/303727).  
+The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1093/gigascience/giaa151).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://rawcdn.githack.com/constantAmateur/SoupX/63674d415fdc3ee17e8acc6ee931a02fe5519a98/inst/doc/pbmcTutorial.html).  
+A detailed vignette is provided with the package and can be viewed [here](https://rawcdn.githack.com/constantAmateur/SoupX/6be48cdb0950ed145a3ca6cf235ec2c24d626f81/inst/doc/pbmcTutorial.html).  
+
+# Citing SoupX
+
+If you use SoupX in your work, please cite: "Young, M.D., Behjati, S. (2020). SoupX removes ambient RNA contamination from droplet-based single-cell RNA sequencing data, GigaScience, Volume 9, Issue 12, December 2020, giaa151bioRxiv, 303727, https://doi.org/10.1093/gigascience/giaa151"
 
 ## Frequently Asked Questions
+
+### I'm getting errors from `autoEstCont` or unrealistic estimates
+
+The automatic estimation of the contamination implemented in `autoEstCont` makes the assumption that there is sufficient diversity in the raw data to identify marker genes (as such genes are commonly useful for estimating the contamination).  If your data is either extremely homogenous (i.e., all one cell type, for example a cell line) or your number of cells is very low (a few hundred or less), then this assumption is unlikely to hold.  In such situations you should think hard about if you really want to include data with such severe limitations.  But if you're sure you do, the best approach is probably to manually specify a contamination fraction in line with what you would expect from similar experiments.
 
 ### My data still looks contaminated.  Why didn't SoupX work?
 
@@ -87,6 +95,10 @@ At this point we assume that you have chosen a set (or sets) of genes to use to 
 
 
 ## Changelog
+
+### v1.5.0
+
+`load10X` now requires the version of `Seurat::Read10X` that does **not** strip out the numeric suffix.
 
 ### v1.4.5 
 

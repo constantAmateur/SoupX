@@ -4,7 +4,9 @@
 \name{scToy}
 \alias{scToy}
 \title{Toy SoupChanel object}
-\format{\code{scToy} is a \code{SoupChannel} object.}
+\format{
+\code{scToy} is a \code{SoupChannel} object.
+}
 \usage{
 data(scToy)
 }

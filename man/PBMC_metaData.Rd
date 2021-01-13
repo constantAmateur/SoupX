@@ -4,7 +4,9 @@
 \name{PBMC_metaData}
 \alias{PBMC_metaData}
 \title{PBMC 4K meta data}
-\format{\code{PBMC_metaData} is a data.frame with 4 columns: RD1, RD2, Cluster, and Annotation.}
+\format{
+\code{PBMC_metaData} is a data.frame with 4 columns: RD1, RD2, Cluster, and Annotation.
+}
 \source{
 \url{https://support.10xgenomics.com/single-cell-gene-expression/datasets/2.1.0/pbmc4k}
 }
