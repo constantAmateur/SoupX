@@ -188,7 +188,8 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMark
                 priorRhoStdDev=priorRhoStdDev,
                 posterior = tmp,
                 rhoEst = rhoEst,
-                rhoFWHM = rhoFWHM
+                rhoFWHM = rhoFWHM,
+                markersUsed = mrks
                 )
   #Set the contamination fraction
   sc = setContaminationFraction(sc,contEst,forceAccept=forceAccept)
