@@ -26,6 +26,11 @@
 SoupChannel = function(tod,toc,metaData=NULL,calcSoupProfile=TRUE,...){
   if(!is.null(metaData) & !all(sort(colnames(toc))==sort(rownames(metaData))))
     stop("Rownames of metaData must match column names of table of counts.")
+  #Check that tod and toc are compatible
+  if(nrow(tod)!=nrow(toc))
+    stop("The provided table of droplets (tod) and table of counts (toc) have different numbers of genes.  Both tod and toc must have the same genes in the same order.")
+  if(any(rownames(tod)!=rownames(toc)))
+    stop("Rownames of the table of droplets (tod) and table of counts (toc) differ.  Both tod and toc must have the same genes in the same order.")
   #Munge everything into a list
   out = list(tod=tod,toc=toc)
   out = c(out,list(...))
