@@ -62,7 +62,7 @@ out = adjustCounts(sc)
 
 The methodology implemented in this package is explained in detail in [this paper](https://doi.org/10.1093/gigascience/giaa151).  
 
-A detailed vignette is provided with the package and can be viewed [here](https://rawcdn.githack.com/constantAmateur/SoupX/6be48cdb0950ed145a3ca6cf235ec2c24d626f81/inst/doc/pbmcTutorial.html).  
+A detailed vignette is provided with the package and can be viewed [here](https://rawcdn.githack.com/constantAmateur/SoupX/63674d415fdc3ee17e8acc6ee931a02fe5519a98/inst/doc/pbmcTutorial.html).  
 
 # Citing SoupX
 
