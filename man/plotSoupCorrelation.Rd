@@ -15,6 +15,3 @@ A ggplot2 object containing the plot.
 \description{
 Calculates an expression profile by aggregating counts across all cells and plots this (on a log10 scale) against the expression profile of the soup.
 }
-\examples{
-gg = SoupX:::plotSoupCorrelation(scToy)
-}
