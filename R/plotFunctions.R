@@ -4,8 +4,6 @@
 #'
 #' @param sc A SoupChannel object.
 #' @return A ggplot2 object containing the plot.
-#' @examples
-#' gg = SoupX:::plotSoupCorrelation(scToy)
 plotSoupCorrelation = function(sc){
   if(!is(sc,'SoupChannel'))
     stop("sc not a valid SoupChannel object.")
