@@ -19,6 +19,7 @@
 load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),includeFeatures=c('Gene Expression'),verbose=TRUE,...){
   #Work out which version we're dealing with
   isV3 = dir.exists(file.path(dataDir,'raw_feature_bc_matrix'))
+  isMulti = dir.exists(file.path(dataDir,'analysis', 'clustering', 'gex'))
   tgt = file.path(dataDir,
                   ifelse(isV3,'raw_feature_bc_matrix','raw_gene_bc_matrices'))
   #Add the reference genome for the non-V3 ones
@@ -55,19 +56,28 @@ load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),include
     message(sprintf("Loading extra analysis data where available"))
   #Get the cluster annotation if available
   mDat = NULL
-  tgt = file.path(dataDir,'analysis','clustering','graphclust','clusters.csv')
+  tgt = ifelse(isMulti,
+               file.path(dataDir,'analysis','clustering', 'gex', 'graphclust','clusters.csv'),
+               file.path(dataDir,'analysis','clustering','graphclust','clusters.csv')
+               )
   if(file.exists(tgt)){
     clusters = read.csv(tgt)
     mDat = data.frame(clusters=clusters$Cluster,row.names=clusters$Barcode)
   }
   #Add fine grained clusters too if present
-  tgt = file.path(dataDir,'analysis','clustering','kmeans_10_clusters','clusters.csv')
+  tgt = ifelse(isMulti,
+               file.path(dataDir,'analysis','clustering', 'gex', 'kmeans_10_clusters','clusters.csv'),
+               file.path(dataDir,'analysis','clustering','kmeans_10_clusters','clusters.csv')
+               )
   if(file.exists(tgt)){
     clusters = read.csv(tgt)
     mDat$clustersFine = clusters$Cluster
   }
   #Get tSNE if available and point to it
-  tgt = file.path(dataDir,'analysis','tsne','2_components','projection.csv')
+  tgt = ifelse(isMulti,
+               file.path(dataDir,'analysis','dimensionality_reduction','gex','tsne_projection.csv'),
+               file.path(dataDir,'analysis','tsne','2_components','projection.csv')
+               )
   if(file.exists(tgt)){
     tsne = read.csv(tgt)
     if(is.null(mDat)){
