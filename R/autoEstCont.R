@@ -1,6 +1,6 @@
 #' Automatically calculate the contamination fraction
 #'
-#' The idea of this method is that genes that are highly expressed in the soup and are marker genes for some population can be used to estimate the background contamination.  Marker genes are identified using the tfidf method (see \code{\link{quickMarkers}}).  The contamination fraction is then calculated at the cluster level for each of these genes and clusters are then aggressively pruned to remove those that give implausible estimates.  
+#' The idea of this method is that genes that are highly expressed in the soup and are marker genes for some population can be used to estimate the background contamination.  Marker genes are identified using the tfidf method (see \code{\link{quickMarkers}}).  The contamination fraction is then calculated at the cluster level for each of these genes and clusters are then aggressively pruned to remove those that give implausible estimates.
 #'
 #' This set of marker genes is filtered to include only those with tf-idf value greater than \code{tfidfMin}.  A higher tf-idf value implies a more specific marker.  Specifically a cut-off t implies that a marker gene has the property that geneFreqGlobal < exp(-t/geneFreqInClust).  See \code{\link{quickMarkers}}.  It may be necessary to decrease this value for data sets with few good markers.
 #'
@@ -9,6 +9,9 @@
 #' The pruning of implausible clusters is based on a call to \code{\link{estimateNonExpressingCells}}.  The parameters \code{maximumContamination=max(contaminationRange)} and \code{rhoMaxFDR} are passed to this function.  The defaults set here are calibrated to aggressively prune anything that has even the weakest of evidence that it is genuinely expressed. 
 #'
 #' For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
+#'
+#' @note
+#' This function assumes that the channel contains multiple distinct cell types with different marker genes.  If you try and run it on a channel with very homogenous cells (e.g. a cell line, flow-sorted cells), you will likely get a warning, an error, and/or an extremely high contamination estimate.  In such circumstances your best option is usually to manually set the contamination to something reasonable.
 #' 
 #' @export
 #' @param sc The SoupChannel object.
@@ -72,10 +75,10 @@ autoEstCont = function(sc,topMarkers=NULL,tfidfMin=1.0,soupQuantile=0.90,maxMark
   #mrks = mrks[mrks$gene %in% tgts,]
   #tgts = head(mrks$gene,nMarks)
   if(length(tgts)==0){
-    stop("No plausible marker genes found.  Reduce tfidfMin or soupQuantile")
+    stop("No plausible marker genes found.  Is the channel low complexity (see help)?  If not, reduce tfidfMin or soupQuantile")
   }
   if(length(tgts)<10){
-    warning("Fewer than 10 marker genes found.  Consider reducing tfidfMin or soupQuantile")
+    warning("Fewer than 10 marker genes found.  Is this channel low complexity (see help)?  If not, consider reducing tfidfMin or soupQuantile")
   }
   ############################
   # Get estimates in clusters
