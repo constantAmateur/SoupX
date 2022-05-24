@@ -59,6 +59,9 @@ The pruning of implausible clusters is based on a call to \code{\link{estimateNo
 
 For each cluster/gene pair the posterior distribution of the contamination fraction is calculated (based on gamma prior, controlled by \code{priorRho} and \code{priorRhoStdDev}).  These posterior distributions are aggregated to produce a final estimate of the contamination fraction. The logic behind this is that estimates from clusters that truly estimate the contamination fraction will cluster around the true value, while erroneous estimates will be spread out across the range (0,1) without a 'preferred value'.  The most probable value of the contamination fraction is then taken as the final global contamination fraction.
 }
+\note{
+This function assumes that the channel contains multiple distinct cell types with different marker genes.  If you try and run it on a channel with very homogenous cells (e.g. a cell line, flow-sorted cells), you will likely get a warning, an error, and/or an extremely high contamination estimate.  In such circumstances your best option is usually to manually set the contamination to something reasonable.
+}
 \examples{
 #Use less specific markers
 scToy = autoEstCont(scToy,tfidfMin=0.8)

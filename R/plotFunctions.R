@@ -242,7 +242,7 @@ plotChangeMap = function(sc,cleanedMatrix,geneSet,DR,dataType=c('soupFrac','bina
     df$relChange[which(df$relChange<zLims[1])] = zLims[1]
     df$relChange[which(df$relChange>zLims[2])] = zLims[2]
     gg = ggplot(df,aes(RD1,RD2)) +
-      geom_point(aes(col=relChange),size=0.5) +
+      geom_point(aes(col=relChange),size=pointSize) +
       xlab('ReducedDim1') +
       ylab('ReducedDim2') +
       labs(colour=nom) + 

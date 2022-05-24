@@ -46,11 +46,15 @@ setClusters = function(sc,clusters){
     if(length(clusters)!=nrow(sc$metaData)){
       stop("Invalid cluster specification.  See help.")
     }else{
-      sc$metaData$clusters = clusters
+      #Ensure the thing we're setting is not a factor
+      sc$metaData$clusters = as.character(clusters)
     }
   }else{
-    sc$metaData$clusters = clusters[rownames(sc$metaData)]
+    sc$metaData$clusters = as.character(clusters[rownames(sc$metaData)])
   }
+  #Do a check that things set correctly
+  if(any(is.na(sc$metaData$clusters)))
+    stop("NAs found in cluster names.  Ensure a (non-na) mapping to cluster is provided for each cell.")
   return(sc)
 }
 
