@@ -96,6 +96,15 @@ At this point we assume that you have chosen a set (or sets) of genes to use to 
 
 ## Changelog
 
+### v1.6.0
+
+ - Added some checks and security around setting of clusters with
+ `setClusters`.
+ - Add warnings and extra documentation about library complexity to
+ `autoEstCont`.
+ - Fix pointSize bug in plotting function.
+ - Merge pull adding support for multi.
+
 ### v1.5.0
 
 `load10X` now requires the version of `Seurat::Read10X` that does **not** strip out the numeric suffix.
