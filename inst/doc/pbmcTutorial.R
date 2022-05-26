@@ -1,6 +1,7 @@
 ## ----global_options, include=FALSE--------------------------------------------
 library(knitr)
 opts_chunk$set(tidy=TRUE)
+knitr::opts_chunk$set(dev='png')
 
 ## ----quick_start, eval=FALSE--------------------------------------------------
 #  install.packages('SoupX')
