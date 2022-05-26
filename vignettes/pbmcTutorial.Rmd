@@ -2,11 +2,10 @@
 title: "SoupX PBMC Demonstration"
 author: "Matthew Daniel Young"
 date: "`r Sys.Date()`"
-fig_width: 8
-fig_height: 6
 output: 
-  pdf_document: default
-  html_document: default
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
 vignette: >
   %\VignetteIndexEntry{PBMC Demonstration}
   %\VignetteEngine{knitr::rmarkdown}
@@ -16,6 +15,7 @@ vignette: >
 ```{r global_options, include=FALSE}
 library(knitr)
 opts_chunk$set(tidy=TRUE)
+knitr::opts_chunk$set(dev='png')
 ```
 
 # Introduction
