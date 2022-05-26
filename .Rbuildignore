@@ -2,3 +2,4 @@
 ^cran-comments\.md$
 ^inst/extdata/PBMC_4k$
 ^Meta$
+^CRAN-SUBMISSION$
