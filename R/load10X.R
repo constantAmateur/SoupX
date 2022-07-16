@@ -20,6 +20,7 @@ load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),include
   #Work out which version we're dealing with
   isV3 = dir.exists(file.path(dataDir,'raw_feature_bc_matrix'))
   isMulti = dir.exists(file.path(dataDir,'analysis', 'clustering', 'gex'))
+  isCR7 = dir.exists(file.path(dataDir,'analysis', 'clustering', 'gene_expression_graphclust'))
   tgt = file.path(dataDir,
                   ifelse(isV3,'raw_feature_bc_matrix','raw_gene_bc_matrices'))
   #Add the reference genome for the non-V3 ones
@@ -56,28 +57,34 @@ load10X = function(dataDir,cellIDs=NULL,channelName=NULL,readArgs=list(),include
     message(sprintf("Loading extra analysis data where available"))
   #Get the cluster annotation if available
   mDat = NULL
-  tgt = ifelse(isMulti,
+  tgt = ifelse(isCR7,
+               file.path(dataDir,'analysis','clustering', 'gene_expression_graphclust','clusters.csv'),
+               (ifelse(isMulti,
                file.path(dataDir,'analysis','clustering', 'gex', 'graphclust','clusters.csv'),
                file.path(dataDir,'analysis','clustering','graphclust','clusters.csv')
-               )
+               )))
   if(file.exists(tgt)){
     clusters = read.csv(tgt)
     mDat = data.frame(clusters=clusters$Cluster,row.names=clusters$Barcode)
   }
   #Add fine grained clusters too if present
-  tgt = ifelse(isMulti,
+  tgt = ifelse(isCR7,
+               file.path(dataDir,'analysis','clustering','gene_expression_kmeans_10_clusters','clusters.csv'),
+               (ifelse(isMulti,
                file.path(dataDir,'analysis','clustering', 'gex', 'kmeans_10_clusters','clusters.csv'),
                file.path(dataDir,'analysis','clustering','kmeans_10_clusters','clusters.csv')
-               )
+               )))
   if(file.exists(tgt)){
     clusters = read.csv(tgt)
     mDat$clustersFine = clusters$Cluster
   }
   #Get tSNE if available and point to it
-  tgt = ifelse(isMulti,
+  tgt = ifelse(isCR7,
+               file.path(dataDir,'analysis','tsne','gene_expression_2_components','projection.csv'),
+               (ifelse(isMulti,
                file.path(dataDir,'analysis','dimensionality_reduction','gex','tsne_projection.csv'),
                file.path(dataDir,'analysis','tsne','2_components','projection.csv')
-               )
+               )))
   if(file.exists(tgt)){
     tsne = read.csv(tgt)
     if(is.null(mDat)){
