@@ -22,7 +22,8 @@
 #' }
 quickMarkers = function(toc,clusters,N=10,FDR=0.01,expressCut=0.9){
   #Convert to the more manipulable format
-  toc = as(toc,'dgTMatrix')
+  #toc = as(toc,'dgTMatrix')
+  toc = as(as(as(toc, "dMatrix"), "generalMatrix"), "TsparseMatrix")
   w = which(toc@x>expressCut)
   #Get the counts in each cluster
   clCnts = table(clusters)

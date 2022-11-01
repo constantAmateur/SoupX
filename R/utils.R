@@ -27,7 +27,8 @@ expandClusters = function(clustSoupCnts,cellObsCnts,clusters,cellWeights,verbose
     #And how many soup
     nSoup = clustSoupCnts[,j]
     #Create the output object
-    expCnts = as(lims,'dgTMatrix')
+    #expCnts = as(lims,'dgTMatrix')
+    expCnts = as(as(as(lims, "dMatrix"), "generalMatrix"), "TsparseMatrix")
     #Most cases are easily dealt with.  In rough order of frequency.
     #1. No soup for gene - set to zero
     #2. All counts for gene are soup - set to lims
